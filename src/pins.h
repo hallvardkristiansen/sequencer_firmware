@@ -41,8 +41,6 @@ void setup_pins() {
   pinMode(btn_steps_pin, INPUT_PULLUP);
   pinMode(btn_swing_pin, INPUT_PULLUP);
   pinMode(btn_dur_pin, INPUT_PULLUP);
-  pinMode(sync_out_pin, OUTPUT);
-  pinMode(all_out_pin, OUTPUT);
   pinMode(cv_mode_pin, INPUT);
   pinMode(cv_steps_pin, INPUT);
   pinMode(cv_swing_pin, INPUT);

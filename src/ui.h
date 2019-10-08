@@ -65,7 +65,7 @@ void poll_encoders() {
 void poll_clock() {
   if (!paused) {
     if (!digitalRead(clock_pin) && !triggered){
-      last_clock_time = looptime;
+      last_clock_time = signaltime;
       triggered = true;
       all_out = true;
       increment_sequence(1);
@@ -141,9 +141,17 @@ void update_timers() {
   if (polling || last_looptime > looptime) {
     last_looptime = looptime; // this will cause extra triggers on overflow
   }
-  update_dacs = (signaltime - last_signaltime) >= dac_hz;
-  if (update_dacs || last_signaltime > signaltime) {
+  update_spi_dacs = (signaltime - last_signaltime) >= dac_hz;
+  update_int_dacs = (signaltime - last_signaltime) >= dac_hz; // test if this works
+  if (update_spi_dacs || last_signaltime > signaltime) {
     last_signaltime = signaltime; // this will cause extra triggers on overflow
   }
-  apply_modifiers = (looptime - last_looptime) < poll_hz;
+  apply_modifiers = (signaltime - last_clock_time) < mod_dur;
+  triggering = (signaltime - last_clock_time) < trigger_dur;
+  if (sync_out && !triggering) {
+    sync_out = false;
+  }
+  if (all_out && !triggering) {
+    all_out = false;
+  }
 }

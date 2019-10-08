@@ -62,10 +62,10 @@ void semitone_to_dac(int dac, int note) {
 }
 
 void resolve_dacs() {
-  if (update_dacs) {
+  if (update_spi_dacs) {
     for (int i = 0; i < 4; i++) {
       if (triggers[i]) {
-        if (triggered) {
+        if (triggered && triggering) {
           set_dac(dacs_single[i], spi_dac_5v);
         } else {
           set_dac(dacs_single[i], spi_dac_0v);
@@ -74,23 +74,24 @@ void resolve_dacs() {
         semitone_to_dac(i, notes[i]);
       }
     }
-
-    if (all_out) {
-      // Output all out signal whatever that may be later
+    update_spi_dacs = false;
+  }
+  if (update_int_dacs) {
+    if (all_out && triggering) {
+      // Output all out signal, currently parroting clock
+      // might work poorly due to analogWrite being slow
       analogWrite(all_out_pin, int_dac_5v);
-      all_out = false;
     } else {
       analogWrite(all_out_pin, int_dac_0v);
     }
 
-    if (sync_out) {
+    if (sync_out && triggering) {
       analogWrite(sync_out_pin, int_dac_5v);
-      sync_out = false;
     } else {
       analogWrite(sync_out_pin, int_dac_0v);
     }
 
-    update_dacs = false;
+    update_int_dacs = false;
   }
 }
 

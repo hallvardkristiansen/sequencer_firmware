@@ -8,6 +8,7 @@ void update_pointer(int val) {
       current_page++;
     } else {
       sync_out = true;
+      hold_for_reset = true;
     }
   } else if (pointer + val < pointer_min) {
     if (((current_page - 1) * grid_size) >= 0) {
@@ -25,10 +26,11 @@ void increment_sequence(int val) {
     pointer = 0;
     current_page = 0;
     val = 0;
+    hold_for_reset = false;
   }
-  update_pointer(val);
-  pattern_pointer = (current_page * grid_size) + pointer;
-  if (!sync_out) {
+  if (!hold_for_reset) {
+    update_pointer(val);
+    pattern_pointer = (current_page * grid_size) + pointer;
     for (int i = 0; i < pointers; i++) {
       int this_pointer = pattern_pointer + (steplength * i);
       int this_note = 0;

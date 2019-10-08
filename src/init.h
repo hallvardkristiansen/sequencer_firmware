@@ -8,10 +8,11 @@ const uint16_t int_dac_0v = 0x076c;
 const uint16_t int_dac_5v = 0x00c8;
 const uint16_t int_dac_range = 0x0fa0;
 
-const int poll_hz = 20;
-const int dac_hz = 1000;
-const int temp_menu_dur = 2000;
-const int trigger_dur = 50;
+const unsigned long poll_hz = 20; // millis
+const unsigned long dac_hz = 1000; // micros
+const unsigned long temp_menu_dur = 2000; // millis
+const unsigned long trigger_dur = 10000; // micros
+unsigned long mod_dur = 100000; // micros
 
 long swing_amnt = 0;
 long glide_amnt = 0;
@@ -45,14 +46,15 @@ int global_glide = 0;
 byte setting_ui[grid_size] {0x00};
 bool triggers[4] {false};
 int notes[] {0, 0, 0, 0};
-bool update_dacs = true;
+bool update_spi_dacs = true;
+bool update_int_dacs = true;
 bool keypad_down = false;
 bool keypads_down[grid_size] {false};
 uint16_t semitones[60];
 
 bool paused = false;
 bool triggered = false;
-bool kill_triggers = true;
+bool triggering = true;
 bool reset = false;
 bool hold_for_reset = false;
 bool all_out = false;
