@@ -9,13 +9,12 @@ byte dacs_all = B00111111;
 void set_dac(byte dacs, uint16_t note) {
   byte note_msb = note >> 8;
   byte note_lsb = note & 0x00ff;
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setClockDivider(SPI_CLOCK_DIV8);
-  SPI.setDataMode(SPI_MODE0);
   digitalWrite(dac_cs_pin, LOW);
+  SPI.beginTransaction(spi_settings);
   SPI.transfer(dacs);
   SPI.transfer(note_msb);
   SPI.transfer(note_lsb);
+  SPI.endTransaction();
   digitalWrite(dac_cs_pin, HIGH);
 }
 
@@ -35,8 +34,31 @@ void build_semitone_scale() {
 }
 
 void semitone_to_dac(int dac, int note) {
-  // add glide implementation here
-  set_dac(dacs_single[dac], semitones[note]);
+  uint16_t dac_value = semitones[note];
+  if (glide_amnt > 0 && apply_modifiers) {
+    double mult = 1.0;
+    // swap timer for a new one based on micros
+    double time = (looptime - last_clock_time) / trigger_dur;
+    switch(glide_mode) {
+      case 0:
+        mult = easeInOutSine(time);
+      break;
+      case 1:
+        mult = easeInOutQuad(time);
+      break;
+      case 2:
+        mult = easeInOutCubic(time);
+      break;
+      case 3:
+        mult = easeInOutBounce(time);
+      break;
+      case 4:
+        mult = easeInOutElastic(time);
+      break;
+    }
+    // do some math magic to the note here
+  }
+  set_dac(dacs_single[dac], dac_value);
 }
 
 void resolve_dacs() {

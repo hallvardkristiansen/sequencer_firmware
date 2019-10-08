@@ -17,7 +17,6 @@ void update_pointer(int val) {
   } else {
     pointer += val;
   }
-  refresh_trellis = true;
 }
 
 void increment_sequence(int val) {
@@ -63,7 +62,6 @@ void increment_sequence(int val) {
       }
     }
   }
-  update_dacs = true;
 }
 
 void change_pointers_count(int dir) {
@@ -84,7 +82,6 @@ void change_pointers_count(int dir) {
       pointers = 4;
     }
   }
-  refresh_trellis = true;
 }
 
 void increment_note(int amnt) {
@@ -114,7 +111,6 @@ void increment_key_swing(int amnt) {
       }
     }
   }
-  refresh_trellis = true;
 }
 void increment_swing(int amnt) {
   if (global_swing + amnt > (int)sizeof(semitones)) {
@@ -124,7 +120,6 @@ void increment_swing(int amnt) {
   } else {
     global_swing += amnt;
   }
-  refresh_trellis = true;
 }
 void increment_key_glide(int amnt) {
   for (int i = 0; i < (int)sizeof(keypads_down); i++) {
@@ -138,7 +133,6 @@ void increment_key_glide(int amnt) {
       }
     }
   }
-  refresh_trellis = true;
 }
 void increment_glide(int amnt) {
   if (global_glide + amnt > (int)sizeof(semitones)) {
@@ -148,5 +142,4 @@ void increment_glide(int amnt) {
   } else {
     global_glide += amnt;
   }
-  refresh_trellis = true;
 }

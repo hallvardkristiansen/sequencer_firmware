@@ -4,7 +4,6 @@ bool left_primed = false;
 bool right_primed = false;
 
 void initialise_mcp() {
-  i2c_busy = true;
   Wire.beginTransmission(0x20);
   Wire.write(0x00); // set pins to input
   Wire.write(0xFF);
@@ -34,7 +33,6 @@ void initialise_mcp() {
   Wire.write(0x06); // set pins to pulled high
   Wire.write(0xFF);
   Wire.endTransmission();
-  i2c_busy = false;
 }
 
 int encoder_direction(int current_state, int previous_state) {
@@ -93,13 +91,11 @@ int encoder_direction(int current_state, int previous_state) {
 }
 
 void read_encoder_values() {
-  i2c_busy = true;
   Wire.beginTransmission(0x20);
   Wire.write(0x08); // ask to read from interrupt register
   Wire.endTransmission();
   Wire.requestFrom(0x20,1); // read data
   encoder_state = Wire.read();
-  i2c_busy = false;
 
   byte mask_a = B11000000;
   byte mask_b = B00110000;

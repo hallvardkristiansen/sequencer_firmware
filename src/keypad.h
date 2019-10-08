@@ -62,7 +62,6 @@ void intro_animation() {
       delay(5);
     }
   }
-  refresh_trellis = true;
 }
 
 uint32_t keypad_color(int num) {

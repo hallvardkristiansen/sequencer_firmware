@@ -43,6 +43,13 @@ void poll_btns() {
         Serial.println("dur down");
       } else {
         Serial.println("dur up");
+        if (!enc_modified) {
+          if (glide_mode + 1 >= glide_modes) {
+            glide_mode = 0;
+          } else {
+            glide_mode++;
+          }
+        }
         enc_modified = false;
       }
     }
@@ -66,9 +73,6 @@ void poll_clock() {
       triggered = false;
     }
   }
-  if (polling) {
-    update_dacs = true;
-  }
 }
 
 void poll_rst() {
@@ -83,12 +87,8 @@ void poll_rst() {
 void sync_keypad() {
   if (polling) {
     trellis.read();
-    if (!i2c_busy && refresh_trellis) {
-      refresh_keypad_colours();
-      trellis.pixels.show();
-      refresh_trellis = false;
-    }
-    last_looptime = looptime;
+    refresh_keypad_colours();
+    trellis.pixels.show();
   }
 }
 
@@ -136,5 +136,14 @@ void resolve_interactions() {
 
 void update_timers() {
   looptime = millis();
+  signaltime = micros();
   polling = (looptime - last_looptime) >= poll_hz;
+  if (polling || last_looptime > looptime) {
+    last_looptime = looptime; // this will cause extra triggers on overflow
+  }
+  update_dacs = (signaltime - last_signaltime) >= dac_hz;
+  if (update_dacs || last_signaltime > signaltime) {
+    last_signaltime = signaltime; // this will cause extra triggers on overflow
+  }
+  apply_modifiers = (looptime - last_looptime) < poll_hz;
 }

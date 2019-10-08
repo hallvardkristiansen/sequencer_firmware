@@ -17,16 +17,18 @@
 #include <ui.h>
 
 void setup() {
-  setup_pins();
-
   Serial.begin(9600);
-  SPI.begin();
+
+  setup_pins();
+  build_semitone_scale();
+
   Wire.begin();
   initialise_mcp();
   initialise_trellis();
+
+  SPI.begin();
   initialise_fram();
   initialise_dac();
-  build_semitone_scale();
 }
 
 void loop() {
