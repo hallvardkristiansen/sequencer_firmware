@@ -135,5 +135,6 @@ void resolve_interactions() {
 }
 
 void update_timers() {
+  looptime = millis();
   polling = (looptime - last_looptime) >= poll_hz;
 }

@@ -26,13 +26,10 @@ void setup() {
   initialise_trellis();
   initialise_fram();
   initialise_dac();
+  build_semitone_scale();
 }
 
 void loop() {
-  if (!semitones[5]) {
-    build_semitone_scale();
-  }
-  looptime = millis();
   update_timers();
   poll_clock();
   poll_rst();
