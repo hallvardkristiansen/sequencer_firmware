@@ -33,30 +33,34 @@ void build_semitone_scale() {
   }
 }
 
-void semitone_to_dac(int dac, int note) {
+void semitone_to_dac(int dac, int note, int last_note) {
   uint16_t dac_value = semitones[note];
   if (glide_amnt > 0 && apply_modifiers) {
     double mult = 1.0;
-    // swap timer for a new one based on micros
-    double time = (looptime - last_clock_time) / trigger_dur;
+    double time = (signaltime - last_clock_time) / mod_dur;
     switch(glide_mode) {
       case 0:
-        mult = easeInOutSine(time);
+        mult = time;
       break;
       case 1:
-        mult = easeInOutQuad(time);
+        mult = easeInOutSine(time);
       break;
       case 2:
-        mult = easeInOutCubic(time);
+        mult = easeInOutQuad(time);
       break;
       case 3:
-        mult = easeInOutBounce(time);
+        mult = easeInOutCubic(time);
       break;
       case 4:
+        mult = easeInOutBounce(time);
+      break;
+      case 5:
         mult = easeInOutElastic(time);
       break;
     }
     // do some math magic to the note here
+    double note_diff = (semitones[note] - semitones[last_note]) * mult;
+    dac_value = semitones[last_note] + (int)note_diff;
   }
   set_dac(dacs_single[dac], dac_value);
 }
@@ -71,7 +75,7 @@ void resolve_dacs() {
           set_dac(dacs_single[i], spi_dac_0v);
         }
       } else {
-        semitone_to_dac(i, notes[i]);
+        semitone_to_dac(i, notes[i], last_notes[i]);
       }
     }
     update_spi_dacs = false;

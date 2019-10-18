@@ -1,7 +1,7 @@
 Adafruit_NeoTrellis trellis;
 int io_expander_addr, keypad_addr;
 
-SPISettings spi_settings(30000000, MSBFIRST, SPI_MODE0);
+SPISettings spi_settings(24000000, MSBFIRST, SPI_MODE0);
 const uint16_t spi_dac_0v = 0xa100;
 const uint16_t spi_dac_5v = 0x1e00;
 const uint16_t int_dac_0v = 0x076c;
@@ -45,7 +45,8 @@ int global_swing = 0;
 int global_glide = 0;
 byte setting_ui[grid_size] {0x00};
 bool triggers[4] {false};
-int notes[] {0, 0, 0, 0};
+int notes[4] {0};
+int last_notes[4] {0}; 
 bool update_spi_dacs = true;
 bool update_int_dacs = true;
 bool keypad_down = false;

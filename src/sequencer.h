@@ -31,6 +31,7 @@ void increment_sequence(int val) {
   if (!hold_for_reset) {
     update_pointer(val);
     pattern_pointer = (current_page * grid_size) + pointer;
+    last_notes = notes;
     for (int i = 0; i < pointers; i++) {
       int this_pointer = pattern_pointer + (steplength * i);
       int this_note = 0;
