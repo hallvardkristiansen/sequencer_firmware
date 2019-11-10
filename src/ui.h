@@ -68,6 +68,7 @@ void poll_clock() {
       last_clock_time = signaltime;
       triggered = true;
       all_out = true;
+      swinging = !swinging;
       increment_sequence(1);
     } else if (digitalRead(clock_pin) && triggered) {
       triggered = false;
@@ -150,7 +151,11 @@ void update_timers() {
     last_signaltime = signaltime; // this will cause extra triggers on overflow
   }
   apply_modifiers = (signaltime - last_clock_time) < mod_dur;
-  triggering = (signaltime - last_clock_time) < trigger_dur;
+  if (swinging && swing_amnt > 0) {
+    triggering = (signaltime - last_clock_time) < (trigger_dur + (swing_amnt * swing_dur))  && (signaltime - last_clock_time) > (swing_amnt * swing_dur);
+  } else {
+    triggering = (signaltime - last_clock_time) < trigger_dur;
+  }
   if (sync_out && !triggering) {
     sync_out = false;
   }

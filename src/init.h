@@ -14,16 +14,18 @@ const unsigned long temp_menu_dur = 2000; // millis
 const unsigned long trigger_dur = 10000; // micros
 unsigned long mod_dur = 100000; // micros
 
-long swing_amnt = 0;
-long glide_amnt = 0;
-int glide_mode = 0;
-int glide_modes = 5;
+unsigned long swing_amnt = 0;
+const unsigned long swing_dur = 20000; // micros
+bool swinging = false;
+unsigned long glide_amnt = 0;
+unsigned int glide_mode = 0;
+const unsigned int glide_modes = 5;
 
-unsigned long looptime = 0;
-unsigned long signaltime = 0;
-unsigned long last_looptime = 0;
-unsigned long last_signaltime = 0;
-unsigned long last_clock_time = 0;
+unsigned long looptime = 0; // millis
+unsigned long signaltime = 0; // micros
+unsigned long last_looptime = 0; // millis
+unsigned long last_signaltime = 0; // micros
+unsigned long last_clock_time = 0; // micros
 unsigned long last_sync_time = 0;
 
 const int gridx = 4;

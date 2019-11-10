@@ -121,9 +121,9 @@ void increment_key_swing(int amnt) {
   for (int i = 0; i < (int)sizeof(keypads_down); i++) {
     if (keypads_down[i]) {
       if (pattern_swing[i] + amnt > (int)sizeof(semitones)) {
-        pattern_swing[i] = 0;
-      } else if (pattern_swing[i] + amnt < 0) {
         pattern_swing[i] = (int)sizeof(semitones);
+      } else if (pattern_swing[i] + amnt < 0) {
+        pattern_swing[i] = 0;
       } else {
         pattern_swing[i] += amnt;
       }
@@ -132,9 +132,9 @@ void increment_key_swing(int amnt) {
 }
 void increment_swing(int amnt) {
   if (global_swing + amnt > (int)sizeof(semitones)) {
-    global_swing = 0;
-  } else if (global_swing + amnt < 0) {
     global_swing = (int)sizeof(semitones);
+  } else if (global_swing + amnt < 0) {
+    global_swing = 0;
   } else {
     global_swing += amnt;
   }
@@ -143,9 +143,9 @@ void increment_key_glide(int amnt) {
   for (int i = 0; i < (int)sizeof(keypads_down); i++) {
     if (keypads_down[i]) {
       if (pattern_glide[i] + amnt > (int)sizeof(semitones)) {
-        pattern_glide[i] = 0;
-      } else if (pattern_glide[i] + amnt < 0) {
         pattern_glide[i] = (int)sizeof(semitones);
+      } else if (pattern_glide[i] + amnt < 0) {
+        pattern_glide[i] = 0;
       } else {
         pattern_glide[i] += amnt;
       }
@@ -154,9 +154,9 @@ void increment_key_glide(int amnt) {
 }
 void increment_glide(int amnt) {
   if (global_glide + amnt > (int)sizeof(semitones)) {
-    global_glide = 0;
-  } else if (global_glide + amnt < 0) {
     global_glide = (int)sizeof(semitones);
+  } else if (global_glide + amnt < 0) {
+    global_glide = 0;
   } else {
     global_glide += amnt;
   }
