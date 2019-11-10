@@ -31,7 +31,9 @@ void increment_sequence(int val) {
   if (!hold_for_reset) {
     update_pointer(val);
     pattern_pointer = (current_page * grid_size) + pointer;
-    last_notes = notes;
+    for (int i = 0; i < dac_count; i++) {
+      last_notes[i] = notes[i];
+    }
     for (int i = 0; i < pointers; i++) {
       int this_pointer = pattern_pointer + (steplength * i);
       int this_note = 0;
@@ -83,6 +85,19 @@ void change_pointers_count(int dir) {
       pointers = 1;
     } else if (pointers == 1) {
       pointers = 4;
+    }
+  }
+}
+
+void change_pattern_length(int amnt) {
+  if (amnt > 0) {
+    pattern_length += grid_size * amnt;
+  } else {
+    int deduct = grid_size * (amnt * -1);
+    if (pattern_length - deduct < grid_size) {
+      pattern_length = grid_size;
+    } else {
+      pattern_length -= deduct;
     }
   }
 }

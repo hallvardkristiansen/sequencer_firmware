@@ -130,6 +130,9 @@ void resolve_interactions() {
     } else {
       increment_glide(enc_dur_mod);
     }
+    if (btn_steps_down) {
+      change_pattern_length(enc_dur_mod);
+    }
     enc_dur_mod = 0;
   }
 }

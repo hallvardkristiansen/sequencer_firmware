@@ -2,7 +2,7 @@ void initialise_fram() {
   digitalWrite(fram_cs_pin, HIGH);
 }
 
-void test_fram() {
+void write_fram() {
   digitalWrite(fram_cs_pin, LOW);
   SPI.beginTransaction(spi_settings);
   SPI.transfer(B00000110); // write enable
@@ -17,24 +17,21 @@ void test_fram() {
   SPI.transfer(B01101011); // write byte
   SPI.endTransaction();
   digitalWrite(fram_cs_pin, HIGH);
-  delay(1000);
+}
+
+void read_fram(int address, int length) {
   digitalWrite(fram_cs_pin, LOW);
   SPI.beginTransaction(spi_settings);
   SPI.transfer(B00000011); // begin read
-  SPI.transfer(B00000000); // address
-  SPI.transfer(B00000000); // address
-  SPI.transfer(B00000000); // address
-  byte result1, result2, result3, result4, result5;
-  result1 = SPI.transfer(0x00);
-  result2 = SPI.transfer(0x00);
-  result3 = SPI.transfer(0x00);
-  result4 = SPI.transfer(0x00);
-  result5 = SPI.transfer(0x00);
+  SPI.transfer(0x00); // address
+  SPI.transfer(0x00); // address
+  SPI.transfer(0x00); // address
   SPI.endTransaction();
   digitalWrite(fram_cs_pin, HIGH);
-  Serial.println(result1);
-  Serial.println(result2);
-  Serial.println(result3);
-  Serial.println(result4);
-  Serial.println(result5);
+}
+
+void test_fram() {
+  write_fram();
+  delay(1000);
+  read_fram(B00000000, 5);
 }
