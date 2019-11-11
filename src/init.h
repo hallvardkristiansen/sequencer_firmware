@@ -8,10 +8,16 @@ const uint16_t int_dac_0v = 0x076c;
 const uint16_t int_dac_5v = 0x00c8;
 const uint16_t int_dac_range = 0x0fa0;
 
-const unsigned long poll_hz = 20; // millis
-const unsigned long dac_hz = 1000; // micros
-const unsigned long temp_menu_dur = 2000; // millis
-const unsigned long trigger_dur = 10000; // micros
+const byte notes_address = 0x08;
+const byte swing_address = 0x10;
+const byte glide_address = 0x18;
+
+
+const unsigned int poll_hz = 20; // millis
+const unsigned int save_hz = 1000; // millis
+const unsigned int dac_hz = 1000; // micros
+const unsigned int temp_menu_dur = 2000; // millis
+const unsigned int trigger_dur = 10000; // micros
 unsigned long mod_dur = 100000; // micros
 
 unsigned long swing_amnt = 0;
@@ -27,6 +33,7 @@ unsigned long last_looptime = 0; // millis
 unsigned long last_signaltime = 0; // micros
 unsigned long last_clock_time = 0; // micros
 unsigned long last_sync_time = 0;
+unsigned long last_save_time = 0; // millis
 
 const int gridx = 4;
 const int gridy = 4;

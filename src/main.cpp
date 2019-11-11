@@ -29,6 +29,7 @@ void setup() {
   SPI.begin();
   initialise_fram();
   initialise_dac();
+  read_fram();
 }
 
 void loop() {

@@ -162,4 +162,8 @@ void update_timers() {
   if (all_out && !triggering) {
     all_out = false;
   }
+  if ((looptime - last_save_time) >= save_hz) {
+    write_fram();
+    last_save_time = looptime;
+  }
 }
