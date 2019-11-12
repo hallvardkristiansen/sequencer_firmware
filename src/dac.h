@@ -7,6 +7,7 @@ byte dacs_single[] = {
 byte dacs_all = B00111111;
 
 void set_dac(byte dacs, uint16_t note) {
+  spi_busy = true;
   byte note_msb = note >> 8;
   byte note_lsb = note & 0x00ff;
   digitalWrite(dac_cs_pin, LOW);
@@ -16,6 +17,7 @@ void set_dac(byte dacs, uint16_t note) {
   SPI.transfer(note_lsb);
   SPI.endTransaction();
   digitalWrite(dac_cs_pin, HIGH);
+  spi_busy = false;
 }
 
 void zero_dacs() {
@@ -35,38 +37,51 @@ void build_semitone_scale() {
 
 void semitone_to_dac(int dac, int note, int last_note) {
   uint16_t dac_value = semitones[note];
-  if (glide_amnt > 0 && apply_modifiers) {
-    double mult = 1.0;
-    double time = (signaltime - last_clock_time) / mod_dur;
-    switch(glide_mode) {
-      case 0:
-        mult = time;
-      break;
-      case 1:
-        mult = easeInOutSine(time);
-      break;
-      case 2:
-        mult = easeInOutQuad(time);
-      break;
-      case 3:
-        mult = easeInOutCubic(time);
-      break;
-      case 4:
-        mult = easeInOutBounce(time);
-      break;
-      case 5:
-        mult = easeInOutElastic(time);
-      break;
+  if (global_glide > 0) {
+    double time_elapsed = signaltime - last_clock_time;
+    double time_duration = glide_dur * global_glide;
+    double time = time_elapsed / time_duration;
+    if (time < 1.0) {
+      double mult = 1.0;
+      double note_diff = semitones[last_note] - semitones[note];
+      switch(glide_mode) {
+        case 0:
+          mult = easeInOutSine(time);
+        break;
+        case 1:
+          mult = easeInSine(time);
+        break;
+        case 2:
+          mult = easeOutSine(time);
+        break;
+        case 3:
+          mult = easeInOutQuad(time);
+        break;
+        case 4:
+          mult = easeInQuad(time);
+        break;
+        case 5:
+          mult = easeOutQuad(time);
+        break;
+        case 6:
+          mult = easeInOutCirc(time);
+        break;
+        case 7:
+          mult = easeInCirc(time);
+        break;
+        case 8:
+          mult = easeOutCirc(time);
+        break;
+      }
+      double note_offset = note_diff * mult;
+      dac_value = semitones[last_note] - (int)note_offset;
     }
-    // do some math magic to the note here
-    double note_diff = (semitones[note] - semitones[last_note]) * mult;
-    dac_value = semitones[last_note] + (int)note_diff;
   }
   set_dac(dacs_single[dac], dac_value);
 }
 
 void resolve_dacs() {
-  if (update_spi_dacs) {
+  if (update_spi_dacs && !spi_busy) {
     for (int i = 0; i < 4; i++) {
       if (triggers[i]) {
         if (triggered && triggering) {

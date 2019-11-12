@@ -57,8 +57,10 @@ void poll_btns() {
 }
 
 void poll_encoders() {
-  if(!digitalRead(ioexp_int_pin)){
+  if (!digitalRead(ioexp_int_pin) && !i2c_busy) {
+    i2c_busy = true;
     read_encoder_values();
+    i2c_busy = false;
   }
 }
 
@@ -86,10 +88,12 @@ void poll_rst() {
 }
 
 void sync_keypad() {
-  if (polling) {
+  if (polling && !i2c_busy) {
+    i2c_busy = true;
     trellis.read();
     refresh_keypad_colours();
     trellis.pixels.show();
+    i2c_busy = false;
   }
 }
 
@@ -150,9 +154,8 @@ void update_timers() {
   if (update_spi_dacs || last_signaltime > signaltime) {
     last_signaltime = signaltime; // this will cause extra triggers on overflow
   }
-  apply_modifiers = (signaltime - last_clock_time) < mod_dur;
-  if (swinging && swing_amnt > 0) {
-    triggering = (signaltime - last_clock_time) < (trigger_dur + (swing_amnt * swing_dur))  && (signaltime - last_clock_time) > (swing_amnt * swing_dur);
+  if (swinging && global_swing > 0) {
+    triggering = (signaltime - last_clock_time) < (trigger_dur + (global_swing * swing_dur))  && (signaltime - last_clock_time) > (global_swing * swing_dur);
   } else {
     triggering = (signaltime - last_clock_time) < trigger_dur;
   }

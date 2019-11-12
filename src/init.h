@@ -8,24 +8,22 @@ const uint16_t int_dac_0v = 0x076c;
 const uint16_t int_dac_5v = 0x00c8;
 const uint16_t int_dac_range = 0x0fa0;
 
-const byte notes_address = 0x08;
+const byte notes_address = 0x00;
 const byte swing_address = 0x10;
 const byte glide_address = 0x18;
 
 
-const unsigned int poll_hz = 20; // millis
-const unsigned int save_hz = 1000; // millis
-const unsigned int dac_hz = 1000; // micros
+const unsigned int poll_hz = 29; // millis
+const unsigned int save_hz = 12345; // millis
+const unsigned int dac_hz = 233; // micros
 const unsigned int temp_menu_dur = 2000; // millis
-const unsigned int trigger_dur = 10000; // micros
-unsigned long mod_dur = 100000; // micros
+const unsigned int trigger_dur = 100000; // micros
 
-unsigned long swing_amnt = 0;
-const unsigned long swing_dur = 20000; // micros
+const unsigned long swing_dur = 1000; // micros
 bool swinging = false;
-unsigned long glide_amnt = 0;
 unsigned int glide_mode = 0;
-const unsigned int glide_modes = 5;
+const unsigned int glide_modes = 8;
+const unsigned long glide_dur = 5000; // micros
 
 unsigned long looptime = 0; // millis
 unsigned long signaltime = 0; // micros
@@ -38,7 +36,7 @@ unsigned long last_save_time = 0; // millis
 const int gridx = 4;
 const int gridy = 4;
 const int grid_size = 16;
-const int initial_pattern_length = 16;
+const int initial_pattern_length = 32;
 const int max_pattern_length = 2048;
 const int dac_count = 4;
 int current_page = 0;
@@ -73,6 +71,8 @@ bool all_out = false;
 bool sync_out = false;
 bool polling = false;
 bool apply_modifiers = false;
+bool i2c_busy = false;
+bool spi_busy = false;
 
 bool btn_mode_down = false;
 bool btn_steps_down = false;

@@ -22,13 +22,14 @@ void setup() {
   setup_pins();
   build_semitone_scale();
 
+  SPI.begin();
+  initialise_fram();
+  initialise_dac();
+
   Wire.begin();
   initialise_mcp();
   initialise_trellis();
 
-  SPI.begin();
-  initialise_fram();
-  initialise_dac();
   read_fram();
 }
 

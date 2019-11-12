@@ -66,7 +66,7 @@ void intro_animation() {
 
 uint32_t keypad_color(int num) {
   double mult = 255 / sizeof(semitones);
-  double val = pattern_tone[num] * mult;
+  double val = pattern_tone[(current_page * grid_size) + num] * mult;
   uint32_t returnval = Wheel((int)val);
   return returnval;
 }

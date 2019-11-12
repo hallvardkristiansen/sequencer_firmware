@@ -22,6 +22,9 @@ void update_pointer(int val) {
 
 void increment_sequence(int val) {
   int steplength = grid_size / pointers;
+  if (paused && val < 0) {
+    hold_for_reset = false;
+  }
   if (val == 99) {
     pointer = 0;
     current_page = 0;
@@ -41,6 +44,12 @@ void increment_sequence(int val) {
       if (pattern_on[this_pointer]) {
         this_note = pattern_tone[this_pointer];
         set_triggers = true;
+        if (paused) {
+          last_clock_time = signaltime;
+          triggered = true;
+          all_out = true;
+          swinging = !swinging;
+        }
       }
       if (pointers == 1) {
         notes[0] = this_note;
@@ -137,6 +146,7 @@ void increment_swing(int amnt) {
     global_swing = 0;
   } else {
     global_swing += amnt;
+    Serial.println(global_swing);
   }
 }
 void increment_key_glide(int amnt) {
@@ -159,5 +169,16 @@ void increment_glide(int amnt) {
     global_glide = 0;
   } else {
     global_glide += amnt;
+    Serial.println(global_glide);
+  }
+}
+void increment_glide_mode(int amnt) {
+  if (glide_mode + amnt > glide_modes) {
+    glide_mode = glide_modes;
+  } else if (glide_mode + amnt < 0) {
+    glide_mode = 0;
+  } else {
+    glide_mode += amnt;
+    Serial.println(glide_mode);
   }
 }
