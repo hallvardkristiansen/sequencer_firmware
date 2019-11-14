@@ -76,6 +76,7 @@ void increment_sequence(int val) {
       }
     }
   }
+  refresh_trellis = true;
 }
 
 void change_pointers_count(int dir) {
@@ -152,8 +153,8 @@ void increment_swing(int amnt) {
 void increment_key_glide(int amnt) {
   for (int i = 0; i < (int)sizeof(keypads_down); i++) {
     if (keypads_down[i]) {
-      if (pattern_glide[i] + amnt > (int)sizeof(semitones)) {
-        pattern_glide[i] = (int)sizeof(semitones);
+      if (pattern_glide[i] + amnt > 2048) {
+        pattern_glide[i] = 2048;
       } else if (pattern_glide[i] + amnt < 0) {
         pattern_glide[i] = 0;
       } else {
@@ -163,8 +164,8 @@ void increment_key_glide(int amnt) {
   }
 }
 void increment_glide(int amnt) {
-  if (global_glide + amnt > (int)sizeof(semitones)) {
-    global_glide = (int)sizeof(semitones);
+  if (global_glide + amnt > 2048) {
+    global_glide = 2048;
   } else if (global_glide + amnt < 0) {
     global_glide = 0;
   } else {

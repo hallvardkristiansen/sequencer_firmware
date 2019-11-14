@@ -9,6 +9,7 @@ void poll_btns() {
         Serial.println("mode up");
         enc_modified = false;
       }
+      refresh_trellis = true;
     }
 
     bool steps_state = !digitalRead(btn_steps_pin);
@@ -23,6 +24,7 @@ void poll_btns() {
         }
         enc_modified = false;
       }
+      refresh_trellis = true;
     }
 
     bool swing_state = !digitalRead(btn_swing_pin);
@@ -34,6 +36,7 @@ void poll_btns() {
         Serial.println("swing up");
         enc_modified = false;
       }
+      refresh_trellis = true;
     }
 
     bool dur_state = !digitalRead(btn_dur_pin);
@@ -44,23 +47,26 @@ void poll_btns() {
       } else {
         Serial.println("dur up");
         if (!enc_modified) {
-          if (glide_mode + 1 >= glide_modes) {
+          if (glide_mode + 1 > glide_modes) {
             glide_mode = 0;
           } else {
             glide_mode++;
           }
+          Serial.println(glide_mode);
         }
         enc_modified = false;
       }
+      refresh_trellis = true;
     }
   }
 }
 
 void poll_encoders() {
-  if (!digitalRead(ioexp_int_pin) && !i2c_busy) {
+  if (!digitalRead(ioexp_int_pin)) {
     i2c_busy = true;
     read_encoder_values();
     i2c_busy = false;
+    refresh_trellis = true;
   }
 }
 
@@ -80,6 +86,10 @@ void poll_clock() {
 
 void poll_rst() {
   if(!digitalRead(rst_pin) && !reset && !paused){
+    last_clock_time = signaltime;
+    triggered = true;
+    all_out = true;
+    swinging = !swinging;
     increment_sequence(99);
     reset = true;
   } else if (digitalRead(rst_pin) && reset) {
@@ -89,11 +99,12 @@ void poll_rst() {
 
 void sync_keypad() {
   if (polling && !i2c_busy) {
-    i2c_busy = true;
     trellis.read();
-    refresh_keypad_colours();
-    trellis.pixels.show();
-    i2c_busy = false;
+    if (refresh_trellis) {
+      refresh_keypad_colours();
+      trellis.pixels.show();
+      refresh_trellis = false;
+    }
   }
 }
 
@@ -145,12 +156,20 @@ void resolve_interactions() {
 void update_timers() {
   looptime = millis();
   signaltime = micros();
+
+  if (last_looptime > looptime) {
+    Serial.println("last_looptime overflowed");
+  }
+  if (last_signaltime > signaltime) {
+    Serial.println("last_signaltime overflowed");
+  }
+
   polling = (looptime - last_looptime) >= poll_hz;
   if (polling || last_looptime > looptime) {
     last_looptime = looptime; // this will cause extra triggers on overflow
   }
-  update_spi_dacs = (signaltime - last_signaltime) >= dac_hz;
-  update_int_dacs = (signaltime - last_signaltime) >= dac_hz; // test if this works
+  update_spi_dacs = (signaltime - last_signaltime) >= spi_dac_hz;
+  update_int_dacs = (signaltime - last_signaltime) >= int_dac_hz; // test if this works
   if (update_spi_dacs || last_signaltime > signaltime) {
     last_signaltime = signaltime; // this will cause extra triggers on overflow
   }
@@ -159,10 +178,11 @@ void update_timers() {
   } else {
     triggering = (signaltime - last_clock_time) < trigger_dur;
   }
-  if (sync_out && !triggering) {
+  syncing = (signaltime - last_clock_time) < sync_dur;
+  if (sync_out && !syncing) {
     sync_out = false;
   }
-  if (all_out && !triggering) {
+  if (all_out && !syncing) {
     all_out = false;
   }
   if ((looptime - last_save_time) >= save_hz) {

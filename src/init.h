@@ -13,16 +13,18 @@ const byte swing_address = 0x10;
 const byte glide_address = 0x18;
 
 
-const unsigned int poll_hz = 29; // millis
-const unsigned int save_hz = 12345; // millis
-const unsigned int dac_hz = 233; // micros
+const unsigned int poll_hz = 31; // millis
+const unsigned int save_hz = 10007; // millis
+const unsigned int spi_dac_hz = 63; // micros
+const unsigned int int_dac_hz = 997; // micros
 const unsigned int temp_menu_dur = 2000; // millis
-const unsigned int trigger_dur = 100000; // micros
+const unsigned int trigger_dur = 10000; // micros
+const unsigned int sync_dur = 50000; // micros
 
 const unsigned long swing_dur = 1000; // micros
 bool swinging = false;
 unsigned int glide_mode = 0;
-const unsigned int glide_modes = 8;
+const unsigned int glide_modes = 29;
 const unsigned long glide_dur = 5000; // micros
 
 unsigned long looptime = 0; // millis
@@ -67,12 +69,14 @@ bool triggered = false;
 bool triggering = true;
 bool reset = false;
 bool hold_for_reset = false;
+bool syncing = false;
 bool all_out = false;
 bool sync_out = false;
 bool polling = false;
 bool apply_modifiers = false;
 bool i2c_busy = false;
 bool spi_busy = false;
+bool refresh_trellis = true;
 
 bool btn_mode_down = false;
 bool btn_steps_down = false;

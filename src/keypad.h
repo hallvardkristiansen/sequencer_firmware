@@ -1,4 +1,5 @@
 uint32_t Wheel(byte WheelPos) {
+  return trellis.pixels.Color(WheelPos, 0, 0);
   if(WheelPos < 85) {
    return trellis.pixels.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
   } else if(WheelPos < 170) {
@@ -52,12 +53,12 @@ void trellis_keypress_events() {
 void intro_animation() {
   for (int j=0; j<=2; j++) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      trellis.pixels.setPixelColor(i, 0x901000);
+      trellis.pixels.setPixelColor(i, 0x900000);
       trellis.pixels.show();
       delay(5);
     }
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      trellis.pixels.setPixelColor(i, 0x090100);
+      trellis.pixels.setPixelColor(i, 0x090000);
       trellis.pixels.show();
       delay(5);
     }
@@ -65,8 +66,8 @@ void intro_animation() {
 }
 
 uint32_t keypad_color(int num) {
-  double mult = 255 / sizeof(semitones);
-  double val = pattern_tone[(current_page * grid_size) + num] * mult;
+  double mult = 250 / 60;
+  double val = (pattern_tone[(current_page * grid_size) + num] * mult) + 5;
   uint32_t returnval = Wheel((int)val);
   return returnval;
 }
@@ -90,7 +91,7 @@ void refresh_keypad_colours() {
       } else if (is_pointer(i)) {
         trellis.pixels.setPixelColor(i, 0x111111);
       } else {
-        trellis.pixels.setPixelColor(i, 0x090100);
+        trellis.pixels.setPixelColor(i, 0x000001);
       }
     }
   }

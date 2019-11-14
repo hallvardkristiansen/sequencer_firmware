@@ -64,13 +64,76 @@ void semitone_to_dac(int dac, int note, int last_note) {
           mult = easeOutQuad(time);
         break;
         case 6:
-          mult = easeInOutCirc(time);
+          mult = easeInOutCubic(time);
         break;
         case 7:
-          mult = easeInCirc(time);
+          mult = easeInCubic(time);
         break;
         case 8:
+          mult = easeOutCubic(time);
+        break;
+        case 9:
+          mult = easeInOutQuart(time);
+        break;
+        case 10:
+          mult = easeInQuart(time);
+        break;
+        case 11:
+          mult = easeOutQuart(time);
+        break;
+        case 12:
+          mult = easeInOutQuint(time);
+        break;
+        case 13:
+          mult = easeInQuint(time);
+        break;
+        case 14:
+          mult = easeOutQuint(time);
+        break;
+        case 15:
+          mult = easeInOutExpo(time);
+        break;
+        case 16:
+          mult = easeInExpo(time);
+        break;
+        case 17:
+          mult = easeOutExpo(time);
+        break;
+        case 18:
+          mult = easeInOutCirc(time);
+        break;
+        case 19:
+          mult = easeInCirc(time);
+        break;
+        case 20:
           mult = easeOutCirc(time);
+        break;
+        case 21:
+          mult = easeInOutBack(time);
+        break;
+        case 22:
+          mult = easeInBack(time);
+        break;
+        case 23:
+          mult = easeOutBack(time);
+        break;
+        case 24:
+          mult = easeInOutElastic(time);
+        break;
+        case 25:
+          mult = easeInElastic(time);
+        break;
+        case 26:
+          mult = easeOutElastic(time);
+        break;
+        case 27:
+          mult = easeInOutBounce(time);
+        break;
+        case 28:
+          mult = easeInBounce(time);
+        break;
+        case 29:
+          mult = easeOutBounce(time);
         break;
       }
       double note_offset = note_diff * mult;
@@ -96,7 +159,7 @@ void resolve_dacs() {
     update_spi_dacs = false;
   }
   if (update_int_dacs) {
-    if (all_out && triggering) {
+    if (all_out && syncing) {
       // Output all out signal, currently parroting clock
       // might work poorly due to analogWrite being slow
       analogWrite(all_out_pin, int_dac_5v);
@@ -104,7 +167,7 @@ void resolve_dacs() {
       analogWrite(all_out_pin, int_dac_0v);
     }
 
-    if (sync_out && triggering) {
+    if (sync_out && syncing) {
       analogWrite(sync_out_pin, int_dac_5v);
     } else {
       analogWrite(sync_out_pin, int_dac_0v);
