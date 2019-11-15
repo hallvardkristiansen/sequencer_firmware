@@ -25,6 +25,8 @@ void write_fram() {
   SPI.transfer(glide_mode);
   SPI.transfer(global_glide);
   SPI.transfer(global_swing);
+  SPI.transfer(pointers);
+  SPI.transfer(pointer);
   SPI.endTransaction();
   digitalWrite(fram_cs_pin, HIGH);
   spi_busy = false;
@@ -51,6 +53,8 @@ void read_fram() {
   glide_mode = SPI.transfer(0x00);
   global_glide = SPI.transfer(0x00);
   global_swing = SPI.transfer(0x00);
+  pointers = SPI.transfer(0x00);
+  pointer = SPI.transfer(0x00);
   SPI.endTransaction();
   digitalWrite(fram_cs_pin, HIGH);
   spi_busy = false;

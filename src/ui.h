@@ -71,7 +71,7 @@ void poll_encoders() {
 }
 
 void poll_clock() {
-  if (!paused) {
+  if (!paused && !hold_for_reset) {
     if (!digitalRead(clock_pin) && !triggered){
       last_clock_time = signaltime;
       triggered = true;
@@ -86,19 +86,26 @@ void poll_clock() {
 
 void poll_rst() {
   if(!digitalRead(rst_pin) && !reset && !paused){
+    reset = true;
     last_clock_time = signaltime;
     triggered = true;
     all_out = true;
     swinging = !swinging;
     increment_sequence(99);
-    reset = true;
   } else if (digitalRead(rst_pin) && reset) {
     reset = false;
   }
 }
 
-void sync_keypad() {
+void poll_inputs() {
+  poll_clock();
+  poll_rst();
+}
+
+void poll_ui() {
   if (polling && !i2c_busy) {
+    poll_btns();
+    poll_encoders();
     trellis.read();
     if (refresh_trellis) {
       refresh_keypad_colours();

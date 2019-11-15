@@ -35,11 +35,8 @@ void setup() {
 
 void loop() {
   update_timers();
-  poll_clock();
-  poll_rst();
-  poll_btns();
-  poll_encoders();
-  sync_keypad();
+  poll_inputs();
+  poll_ui();
   resolve_interactions();
   resolve_dacs();
 }
