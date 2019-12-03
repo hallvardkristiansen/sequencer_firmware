@@ -83,6 +83,10 @@ bool spi_busy = false;
 bool refresh_trellis = true;
 bool perform_save = false;
 
+bool btn_mode_state = false;
+bool btn_steps_state = false;
+bool btn_swing_state = false;
+bool btn_dur_state = false;
 bool btn_mode_down = false;
 bool btn_steps_down = false;
 bool btn_swing_down = false;

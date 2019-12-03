@@ -20,6 +20,17 @@ void update_pointer(int val) {
   }
 }
 
+bool is_pointer(int val) {
+  bool returnval = false;
+  int steplength = (gridx * gridy) / pointers;
+  for (int i = 0; i < pointers; i++) {
+    if (val == pointer + (steplength * i)) {
+      returnval = true;
+    }
+  }
+  return returnval;
+}
+
 void increment_sequence(int val) {
   int steplength = grid_size / pointers;
   if (paused && val < 0) {

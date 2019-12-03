@@ -9,6 +9,7 @@
 #include <init.h>
 #include <utils.h>
 #include <sequencer.h>
+#include <ui.h>
 #include <keypad.h>
 #include <encoders.h>
 #include <fram.h>

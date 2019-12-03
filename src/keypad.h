@@ -1,44 +1,9 @@
-uint32_t Wheel(byte WheelPos) {
-  return trellis.pixels.Color(WheelPos, 0, 0);
-  if(WheelPos < 85) {
-   return trellis.pixels.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
-  } else if(WheelPos < 170) {
-   WheelPos -= 85;
-   return trellis.pixels.Color(255 - WheelPos * 3, 0, WheelPos * 3);
-  } else {
-   WheelPos -= 170;
-   return trellis.pixels.Color(0, WheelPos * 3, 255 - WheelPos * 3);
-  }
-  return 0;
-}
-
-bool is_pointer(int val) {
-  bool returnval = false;
-  int steplength = (gridx * gridy) / pointers;
-  for (int i = 0; i < pointers; i++) {
-    if (val == pointer + (steplength * i)) {
-      returnval = true;
-    }
-  }
-  return returnval;
-}
-
 TrellisCallback keypress(keyEvent evt){
   if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_RISING) {
-    keypads_down[evt.bit.NUM] = true;
-    keypad_down = true;
+    keypad_pressed(evt.bit.NUM);
   } else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
-    keypads_down[evt.bit.NUM] = false;
-    keypad_down = false;
-    int pattern_index = (grid_size * current_page) + evt.bit.NUM;
-    if (!pattern_on[pattern_index]) {
-      pattern_on[pattern_index] = true;
-    } else if (!enc_modified && pattern_on[pattern_index]) {
-      pattern_on[pattern_index] = false;
-    }
-    enc_modified = false;
+    keypad_released(evt.bit.NUM);
   }
-  increment_sequence(0);
   return 0;
 }
 
@@ -63,13 +28,6 @@ void intro_animation() {
       delay(5);
     }
   }
-}
-
-uint32_t keypad_color(int num) {
-  double mult = 250 / 60;
-  double val = (pattern_tone[(current_page * grid_size) + num] * mult) + 5;
-  uint32_t returnval = Wheel((int)val);
-  return returnval;
 }
 
 void refresh_keypad_colours() {

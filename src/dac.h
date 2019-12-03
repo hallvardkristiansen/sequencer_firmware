@@ -159,18 +159,18 @@ void resolve_dacs() {
     update_spi_dacs = false;
   }
   if (update_int_dacs) {
-    if (all_out && syncing) {
-      // Output all out signal, currently parroting clock
-      // might work poorly due to analogWrite being slow
-      analogWrite(all_out_pin, int_dac_5v);
+    if (syncing) {
+      if (all_out) {
+        analogWrite(all_out_pin, int_dac_5v);
+      }
+      if (sync_out) {
+        analogWrite(sync_out_pin, int_dac_5v);
+      }
     } else {
       analogWrite(all_out_pin, int_dac_0v);
-    }
-
-    if (sync_out && syncing) {
-      analogWrite(sync_out_pin, int_dac_5v);
-    } else {
       analogWrite(sync_out_pin, int_dac_0v);
+      all_out = false;
+      sync_out = false;
     }
 
     update_int_dacs = false;
