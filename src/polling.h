@@ -63,21 +63,27 @@ void poll_btns() {
 
 void poll_encoders() {
   if (!digitalRead(ioexp_int_pin)) {
-    i2c_busy = true;
     read_encoder_values();
-    i2c_busy = false;
-    refresh_trellis = true;
+  }
+}
+
+void poll_keypad() {
+  if (!digitalRead(trellis_int_pin)) {
+    trellis.read();
+  }
+  if (refresh_trellis && polling) {
+    refresh_keypad_colours();
+    trellis.pixels.show();
+    refresh_trellis = false;
   }
 }
 
 void poll_clock() {
-  if (!paused && !hold_for_reset) {
+  if (!paused) {
     if (!digitalRead(clock_pin) && !triggered){
-      last_clock_time = signaltime;
-      triggered = true;
-      all_out = true;
-      swinging = !swinging;
+      fire_trigger();
       increment_sequence(1);
+      refresh_trellis = true;
     } else if (digitalRead(clock_pin) && triggered) {
       triggered = false;
     }
@@ -86,33 +92,33 @@ void poll_clock() {
 
 void poll_rst() {
   if(!digitalRead(rst_pin) && !reset && !paused){
-    reset = true;
-    last_clock_time = signaltime;
-    triggered = true;
-    all_out = true;
-    swinging = !swinging;
-    increment_sequence(99);
+    fire_reset();
+    increment_sequence(0);
+    refresh_trellis = true;
   } else if (digitalRead(rst_pin) && reset) {
     reset = false;
+  }
+}
+
+void poll_cv() {
+  if (adc_poll) {
+    cv_mode = analogRead(cv_mode_pin);
+    cv_steps = analogRead(cv_steps_pin);
+    cv_swing = analogRead(cv_swing_pin);
+    cv_dur = analogRead(cv_dur_pin);
   }
 }
 
 void poll_inputs() {
   poll_clock();
   poll_rst();
+  poll_cv();
 }
 
 void poll_ui() {
-  if (polling && !i2c_busy) {
-    poll_btns();
-    poll_encoders();
-    trellis.read();
-    if (refresh_trellis) {
-      refresh_keypad_colours();
-      trellis.pixels.show();
-      refresh_trellis = false;
-    }
-  }
+  poll_btns();
+  poll_encoders();
+  poll_keypad();
 }
 
 void resolve_interactions() {
@@ -120,6 +126,7 @@ void resolve_interactions() {
     change_pointers_count(enc_mode_mod);
     increment_sequence(0);
     enc_mode_mod = 0;
+    refresh_trellis = true;
   }
   if (enc_steps_mod != 0) {
     if (btn_steps_down) {
@@ -127,16 +134,14 @@ void resolve_interactions() {
     } else if (keypad_down) {
       increment_note(enc_steps_mod);
     } else {
-      last_clock_time = looptime;
-      triggered = true;
       increment_sequence(enc_steps_mod);
     }
     enc_steps_mod = 0;
+    refresh_trellis = true;
   } else {
     if (btn_steps_down && btn_mode_down) {
-      triggered = false;
-      increment_sequence(99);
-      reset = true;
+      fire_reset();
+      refresh_trellis = true;
     }
   }
   if (enc_swing_mod != 0) {
@@ -146,6 +151,7 @@ void resolve_interactions() {
       increment_swing(enc_swing_mod);
     }
     enc_swing_mod = 0;
+    refresh_trellis = true;
   }
   if (enc_dur_mod != 0) {
     if (keypad_down) {
@@ -157,43 +163,49 @@ void resolve_interactions() {
       change_pattern_length(enc_dur_mod);
     }
     enc_dur_mod = 0;
+    refresh_trellis = true;
   }
 }
 
 void update_timers() {
-  looptime = millis();
-  signaltime = micros();
+  millitime = millis();
+  microtime = micros();
 
-  if (last_looptime > looptime) {
-    Serial.println("last_looptime overflowed");
-  }
-  if (last_signaltime > signaltime) {
-    Serial.println("last_signaltime overflowed");
+  polling = (millitime - last_polltime) >= poll_hz;
+  if (polling || last_polltime > millitime) {
+    last_polltime = millitime; // this will cause extra triggers on overflow
   }
 
-  polling = (looptime - last_looptime) >= poll_hz;
-  if (polling || last_looptime > looptime) {
-    last_looptime = looptime; // this will cause extra triggers on overflow
+  update_spi_dacs = (microtime - last_spi_dac_update) >= spi_dac_hz;
+  update_int_dacs = (microtime - last_int_dac_update) >= int_dac_hz;
+  adc_poll = (microtime - last_int_adc_update) >= int_adc_hz;
+
+  if (update_spi_dacs || last_spi_dac_update > microtime) {
+    last_spi_dac_update = microtime; // this may cause extra triggers on overflow
   }
-  update_spi_dacs = (signaltime - last_signaltime) >= spi_dac_hz;
-  update_int_dacs = (signaltime - last_signaltime) >= int_dac_hz; // test if this works
-  if (update_spi_dacs || last_signaltime > signaltime) {
-    last_signaltime = signaltime; // this will cause extra triggers on overflow
+  if (update_int_dacs || last_int_dac_update > microtime) {
+    last_int_dac_update = microtime; // this may cause extra triggers on overflow
   }
+  if (adc_poll || last_int_adc_update > microtime) {
+    last_int_adc_update = microtime;
+  }
+
   if (swinging && global_swing > 0) {
-    triggering = (signaltime - last_clock_time) < (trigger_dur + (global_swing * swing_dur))  && (signaltime - last_clock_time) > (global_swing * swing_dur);
+    triggering = (microtime - last_clock_time) < (trigger_dur + (global_swing * swing_dur))  && (microtime - last_clock_time) > (global_swing * swing_dur);
   } else {
-    triggering = (signaltime - last_clock_time) < trigger_dur;
+    triggering = (microtime - last_clock_time) < trigger_dur;
   }
-  syncing = (signaltime - last_clock_time) < sync_dur;
+
+  syncing = (microtime - last_clock_time) < sync_dur;
   if (sync_out && !syncing) {
     sync_out = false;
   }
   if (all_out && !syncing) {
     all_out = false;
   }
-  if ((looptime - last_save_time) >= save_hz) {
-    write_fram();
-    last_save_time = looptime;
+
+  perform_save = (millitime - last_save_time) >= save_hz;
+  if (perform_save || last_save_time > millitime) {
+    last_save_time = millitime;
   }
 }

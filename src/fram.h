@@ -10,7 +10,7 @@ void write_fram() {
   SPI.transfer(B00000110); // write enable
   SPI.transfer(B00000010); // begin write
   SPI.transfer(0x00); // address
-  SPI.transfer(notes_address); // address
+  SPI.transfer(0x00); // address
   SPI.transfer(0x00); // address
   for (int i = 0; i < max_pattern_length; i++) {
     SPI.transfer(pattern_tone[i]);
@@ -19,7 +19,7 @@ void write_fram() {
     SPI.transfer(pattern_glide[i]);
   }
   SPI.transfer(paused);
-  SPI.transfer(hold_for_reset);
+  SPI.transfer(reset_on_increment);
   SPI.transfer(pattern_length);
   SPI.transfer(current_page);
   SPI.transfer(glide_mode);
@@ -38,7 +38,7 @@ void read_fram() {
   SPI.beginTransaction(spi_settings);
   SPI.transfer(B00000011); // begin read
   SPI.transfer(0x00); // address
-  SPI.transfer(notes_address); // address
+  SPI.transfer(0x00); // address
   SPI.transfer(0x00); // address
   for (int i = 0; i < max_pattern_length; i++) {
     pattern_tone[i] = SPI.transfer(0x00);
@@ -47,7 +47,7 @@ void read_fram() {
     pattern_glide[i] = SPI.transfer(0x00);
   }
   paused = SPI.transfer(0x00);
-  hold_for_reset = SPI.transfer(0x00);
+  reset_on_increment = SPI.transfer(0x00);
   pattern_length = SPI.transfer(0x00);
   current_page = SPI.transfer(0x00);
   glide_mode = SPI.transfer(0x00);
@@ -58,4 +58,10 @@ void read_fram() {
   SPI.endTransaction();
   digitalWrite(fram_cs_pin, HIGH);
   spi_busy = false;
+}
+
+void save_state() {
+  if (perform_save) {
+    write_fram();
+  }
 }

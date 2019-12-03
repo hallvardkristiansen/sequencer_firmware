@@ -38,7 +38,7 @@ void build_semitone_scale() {
 void semitone_to_dac(int dac, int note, int last_note) {
   uint16_t dac_value = semitones[note];
   if (global_glide > 0) {
-    double time_elapsed = signaltime - last_clock_time;
+    double time_elapsed = microtime - last_clock_time;
     double time_duration = glide_dur * global_glide;
     double time = time_elapsed / time_duration;
     if (time < 1.0) {

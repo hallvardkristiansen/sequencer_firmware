@@ -14,7 +14,7 @@
 #include <fram.h>
 #include <dac.h>
 
-#include <ui.h>
+#include <polling.h>
 
 void setup() {
   Serial.begin(9600);
@@ -39,4 +39,5 @@ void loop() {
   poll_ui();
   resolve_interactions();
   resolve_dacs();
+  save_state();
 }

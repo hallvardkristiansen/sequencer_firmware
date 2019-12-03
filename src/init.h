@@ -8,15 +8,11 @@ const uint16_t int_dac_0v = 0x076c;
 const uint16_t int_dac_5v = 0x00c8;
 const uint16_t int_dac_range = 0x0fa0;
 
-const byte notes_address = 0x00;
-const byte swing_address = 0x10;
-const byte glide_address = 0x18;
-
-
-const unsigned int poll_hz = 31; // millis
+const unsigned int poll_hz = 23; // millis
 const unsigned int save_hz = 10007; // millis
-const unsigned int spi_dac_hz = 63; // micros
+const unsigned int spi_dac_hz = 61; // micros
 const unsigned int int_dac_hz = 997; // micros
+const unsigned int int_adc_hz = 1493; // micros
 const unsigned int temp_menu_dur = 2000; // millis
 const unsigned int trigger_dur = 10000; // micros
 const unsigned int sync_dur = 50000; // micros
@@ -27,12 +23,20 @@ unsigned int glide_mode = 0;
 const unsigned int glide_modes = 29;
 const unsigned long glide_dur = 5000; // micros
 
-unsigned long looptime = 0; // millis
-unsigned long signaltime = 0; // micros
-unsigned long last_looptime = 0; // millis
-unsigned long last_signaltime = 0; // micros
+bool adc_poll = false;
+unsigned int cv_mode = 0;
+unsigned int cv_steps = 0;
+unsigned int cv_swing = 0;
+unsigned int cv_dur = 0;
+
+unsigned long millitime = 0; // millis
+unsigned long microtime = 0; // micros
+unsigned long last_polltime = 0; // millis
+unsigned long last_int_dac_update = 0; // micros
+unsigned long last_int_adc_update = 0; // micros
+unsigned long last_spi_dac_update = 0; // micros
 unsigned long last_clock_time = 0; // micros
-unsigned long last_sync_time = 0;
+unsigned long last_sync_time = 0; // micros
 unsigned long last_save_time = 0; // millis
 
 const int gridx = 4;
@@ -68,7 +72,7 @@ bool paused = false;
 bool triggered = false;
 bool triggering = true;
 bool reset = false;
-bool hold_for_reset = false;
+bool reset_on_increment = false;
 bool syncing = false;
 bool all_out = false;
 bool sync_out = false;
@@ -77,6 +81,7 @@ bool apply_modifiers = false;
 bool i2c_busy = false;
 bool spi_busy = false;
 bool refresh_trellis = true;
+bool perform_save = false;
 
 bool btn_mode_down = false;
 bool btn_steps_down = false;
