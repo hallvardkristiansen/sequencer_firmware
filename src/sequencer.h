@@ -2,20 +2,20 @@ void update_pointer(int val) {
   int max_steps = grid_size / pointers;
   int pointer_min = 0;
   int pointer_max = max_steps - 1;
-  if (pointer + 1 == pointer_max && (current_page + 1) * grid_size == pattern_length) {
-    sync_out = true;
-  }
-  if (pointer + val > pointer_max) {
-    if (((current_page + 1) * grid_size) < pattern_length) {
-      pointer = pointer_min;
-      current_page++;
-    }
-  } else if (pointer + val < pointer_min) {
-    if (((current_page - 1) * grid_size) >= 0) {
-      pointer = pointer_max;
-      current_page--;
-    }
-  } else {
+  bool pointer_over_bounds = pointer + val > pointer_max;
+  bool pointer_under_bounds = pointer + val < pointer_min;
+  bool page_over_bounds = (current_page + 1) * grid_size >= pattern_length;
+  bool page_under_bounds = ((current_page - 1) * grid_size) < 0;
+
+  pattern_ended = (pointer_over_bounds && page_over_bounds) || (pointer_under_bounds && page_under_bounds);
+
+  if (pointer_over_bounds && !page_over_bounds) {
+    pointer = pointer_min;
+    current_page++;
+  } else if (pointer_under_bounds && !page_under_bounds) {
+    pointer = pointer_max;
+    current_page--;
+  } else if (!pattern_ended) {
     pointer += val;
   }
 }
@@ -33,15 +33,6 @@ bool is_pointer(int val) {
 
 void increment_sequence(int val) {
   int steplength = grid_size / pointers;
-  if (paused && val < 0) {
-    reset_on_increment = false;
-  }
-  if (reset_on_increment) {
-    pointer = 0;
-    current_page = 0;
-    val = 0;
-    reset_on_increment = false;
-  }
   update_pointer(val);
   pattern_pointer = (current_page * grid_size) + pointer;
   for (int i = 0; i < dac_count; i++) {
@@ -193,13 +184,22 @@ void increment_glide_mode(int amnt) {
 }
 
 void fire_trigger() {
-  triggered = true;
-  last_clock_time = microtime;
-  all_out = true;
-  swinging = !swinging;
+  if (!paused) {
+    last_clock_time = microtime;
+    swinging = !swinging;
+    if (!pattern_ended) {
+      sync_out = false;
+      all_out = true;
+      increment_sequence(incrementor);
+    } else {
+      sync_out = true;
+      all_out = true;
+    }
+  }
 }
 
 void fire_reset() {
-  reset = true;
-  reset_on_increment = true;
+  pointer = 0;
+  current_page = 0;
+  increment_sequence(0);
 }

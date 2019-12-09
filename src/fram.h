@@ -19,7 +19,7 @@ void write_fram() {
     SPI.transfer(pattern_glide[i]);
   }
   SPI.transfer(paused);
-  SPI.transfer(reset_on_increment);
+  SPI.transfer(pattern_ended);
   SPI.transfer(pattern_length);
   SPI.transfer(current_page);
   SPI.transfer(glide_mode);
@@ -47,7 +47,7 @@ void read_fram() {
     pattern_glide[i] = SPI.transfer(0x00);
   }
   paused = SPI.transfer(0x00);
-  reset_on_increment = SPI.transfer(0x00);
+  pattern_ended = SPI.transfer(0x00);
   pattern_length = SPI.transfer(0x00);
   current_page = SPI.transfer(0x00);
   glide_mode = SPI.transfer(0x00);

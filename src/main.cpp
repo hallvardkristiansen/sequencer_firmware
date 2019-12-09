@@ -4,10 +4,10 @@
 #include <time.h>
 #include "Adafruit_NeoTrellis.h"
 
-#include <easing.h>
 #include <pins.h>
 #include <init.h>
 #include <utils.h>
+#include <easing.h>
 #include <sequencer.h>
 #include <ui.h>
 #include <keypad.h>

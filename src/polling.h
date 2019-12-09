@@ -26,21 +26,19 @@ void poll_keypad() {
 }
 
 void poll_clock() {
-  if (!paused) {
-    if (!digitalRead(clock_pin) && !triggered){
-      fire_trigger();
-      increment_sequence(1);
-      refresh_trellis = true;
-    } else if (digitalRead(clock_pin) && triggered) {
-      triggered = false;
-    }
+  if (!digitalRead(clock_pin) && !triggered){
+    triggered = true;
+    fire_trigger();
+    refresh_trellis = true;
+  } else if (digitalRead(clock_pin) && triggered) {
+    triggered = false;
   }
 }
 
 void poll_rst() {
-  if(!digitalRead(rst_pin) && !reset && !paused){
+  if(!digitalRead(rst_pin) && !reset){
+    reset = true;
     fire_reset();
-    increment_sequence(0);
     refresh_trellis = true;
   } else if (digitalRead(rst_pin) && reset) {
     reset = false;

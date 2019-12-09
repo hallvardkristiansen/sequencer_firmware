@@ -3,6 +3,16 @@ void mode_press() {
     Serial.println("mode down");
   } else {
     Serial.println("mode up");
+    if (btn_steps_down) {
+      fire_reset();
+    }
+    if (!btn_steps_down && !btn_swing_down && !btn_dur_down) {
+      if (incrementor == 1) {
+        incrementor = -1;
+      } else {
+        incrementor = 1;
+      }
+    }
     enc_modified = false;
   }
 }
@@ -11,7 +21,10 @@ void steps_press() {
     Serial.println("steps down");
   } else {
     Serial.println("steps up");
-    if (!enc_modified) {
+    if (btn_mode_down) {
+      fire_reset();
+    }
+    if (!btn_mode_down && !btn_swing_down && !btn_dur_down) {
       paused = !paused;
     }
     enc_modified = false;
@@ -47,9 +60,7 @@ void mode_rotate() {
   increment_sequence(0);
 }
 void steps_rotate() {
-  if (btn_steps_down) {
-    update_pointer(enc_steps_mod); // swap for insert
-  } else if (keypad_down) {
+  if (keypad_down) {
     increment_note(enc_steps_mod);
   } else {
     increment_sequence(enc_steps_mod);
@@ -107,8 +118,4 @@ uint32_t keypad_color(int num) {
   double val = (pattern_tone[(current_page * grid_size) + num] * mult) + 5;
   uint32_t returnval = Wheel((int)val);
   return returnval;
-}
-
-void selector_ui() {
-
 }
