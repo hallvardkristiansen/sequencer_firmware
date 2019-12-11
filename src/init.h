@@ -32,7 +32,8 @@ unsigned int cv_dur = 0;
 
 unsigned long millitime = 0; // millis
 unsigned long microtime = 0; // micros
-unsigned long last_polltime = 0; // millis
+unsigned long last_key_polltime = 0; // millis
+unsigned long last_btn_polltime = 0; // millis
 unsigned long last_int_dac_update = 0; // micros
 unsigned long last_int_adc_update = 0; // micros
 unsigned long last_spi_dac_update = 0; // micros

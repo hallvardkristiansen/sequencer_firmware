@@ -134,7 +134,8 @@ void increment_note(int amnt) {
       }
     }
   }
-  increment_sequence(0);
+  last_clock_time = microtime;
+  increment_sequence();
 }
 void increment_key_swing(int amnt) {
   for (int i = 0; i < (int)sizeof(keypads_down); i++) {
