@@ -1,5 +1,5 @@
 void poll_btns() {
-  if (polling) {
+  if (polling_btns) {
     btn_mode_state = !digitalRead(btn_mode_pin);
     btn_steps_state = !digitalRead(btn_steps_pin);
     btn_swing_state = !digitalRead(btn_swing_pin);
@@ -18,7 +18,7 @@ void poll_keypad() {
     trellis.read();
     refresh_trellis = true;
   }
-  if (refresh_trellis && polling) {
+  if (refresh_trellis && polling_keys) {
     refresh_keypad_colours();
     trellis.pixels.show();
     refresh_trellis = false;
@@ -114,14 +114,18 @@ void update_timers() {
   millitime = millis();
   microtime = micros();
 
-  polling = (millitime - last_polltime) >= poll_hz;
+  polling_keys = (millitime - last_key_polltime) >= key_poll_hz;
+  polling_btns = (millitime - last_btn_polltime) >= btn_poll_hz;
   perform_save = (millitime - last_save_time) >= save_hz;
   update_spi_dacs = (microtime - last_spi_dac_update) >= spi_dac_hz;
   update_int_dacs = (microtime - last_int_dac_update) >= int_dac_hz;
   adc_poll = (microtime - last_int_adc_update) >= int_adc_hz;
 
-  if (polling || last_polltime > millitime) {
-    last_polltime = millitime;
+  if (polling_keys || last_key_polltime > millitime) {
+    last_key_polltime = millitime;
+  }
+  if (polling_btns || last_btn_polltime > millitime) {
+    last_btn_polltime = millitime;
   }
   if (perform_save || last_save_time > millitime) {
     last_save_time = millitime;
@@ -137,5 +141,5 @@ void update_timers() {
   }
 
   triggering = (microtime - last_clock_time) < trigger_dur;
-  syncing = (microtime - last_clock_time) < sync_dur;
+  syncing = (microtime - last_sync_time) < sync_dur;
 }

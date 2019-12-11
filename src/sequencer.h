@@ -1,83 +1,3 @@
-void update_pointer(int val) {
-  int max_steps = grid_size / pointers;
-  int pointer_min = 0;
-  int pointer_max = max_steps - 1;
-  bool pointer_over_bounds = pointer + val > pointer_max;
-  bool pointer_under_bounds = pointer + val < pointer_min;
-  bool page_over_bounds = (current_page + 1) * grid_size >= pattern_length;
-  bool page_under_bounds = ((current_page - 1) * grid_size) < 0;
-
-  pattern_ended = (pointer_over_bounds && page_over_bounds) || (pointer_under_bounds && page_under_bounds);
-
-  if (pointer_over_bounds && !page_over_bounds) {
-    pointer = pointer_min;
-    current_page++;
-  } else if (pointer_under_bounds && !page_under_bounds) {
-    pointer = pointer_max;
-    current_page--;
-  } else if (!pattern_ended) {
-    pointer += val;
-  }
-}
-
-bool is_pointer(int val) {
-  bool returnval = false;
-  int steplength = (gridx * gridy) / pointers;
-  for (int i = 0; i < pointers; i++) {
-    if (val == pointer + (steplength * i)) {
-      returnval = true;
-    }
-  }
-  return returnval;
-}
-
-void increment_sequence(int val) {
-  int steplength = grid_size / pointers;
-  update_pointer(val);
-  pattern_pointer = (current_page * grid_size) + pointer;
-  for (int i = 0; i < dac_count; i++) {
-    last_notes[i] = notes[i];
-  }
-  for (int i = 0; i < pointers; i++) {
-    int this_pointer = pattern_pointer + (steplength * i);
-    int this_note = 0;
-    bool set_triggers = false;
-    if (pattern_on[this_pointer]) {
-      this_note = pattern_tone[this_pointer];
-      set_triggers = true;
-      if (paused) {
-        last_clock_time = microtime;
-        triggered = true;
-        all_out = true;
-        swinging = !swinging;
-      }
-    }
-    if (pointers == 1) {
-      notes[0] = this_note;
-      triggers[0] = false;
-      triggers[1] = set_triggers;
-      notes[2] = this_note;
-      triggers[2] = false;
-      triggers[3] = set_triggers;
-    }
-    if (pointers == 2) {
-      if (i == 0) {
-        notes[0] = this_note;
-        triggers[0] = false;
-        triggers[1] = set_triggers;
-      }
-      if (i == 1) {
-        notes[2] = this_note;
-        triggers[2] = false;
-        triggers[3] = set_triggers;
-      }
-    }
-    if (pointers == 4) {
-      triggers[i] = set_triggers;
-    }
-  }
-}
-
 void change_pointers_count(int dir) {
   if (dir > 0) {
     if (pointers == 1) {
@@ -107,6 +27,96 @@ void change_pattern_length(int amnt) {
       pattern_length = grid_size;
     } else {
       pattern_length -= deduct;
+    }
+  }
+}
+
+void update_pointer(int val) {
+  int max_steps = grid_size / pointers;
+  int pointer_min = 0;
+  int pointer_max = max_steps - 1;
+  bool pointer_over_bounds = pointer + val > pointer_max;
+  bool pointer_under_bounds = pointer + val < pointer_min;
+  bool page_over_bounds = (current_page + 1) * grid_size >= pattern_length;
+  bool page_under_bounds = ((current_page - 1) * grid_size) < 0;
+
+  pattern_ended = (pointer_over_bounds && page_over_bounds) || (pointer_under_bounds && page_under_bounds);
+
+  if (paused && pointer_over_bounds && page_over_bounds) {
+    change_pattern_length(1);
+    page_over_bounds = false;
+  }
+
+  if (pointer_over_bounds && !page_over_bounds) {
+    pointer = pointer_min;
+    current_page++;
+  } else if (pointer_under_bounds && !page_under_bounds) {
+    pointer = pointer_max;
+    current_page--;
+  } else if (!pattern_ended) {
+    pointer += val;
+  }
+}
+
+void reset_pointer() {
+  if (incrementor > 0) {
+    pointer = 0;
+    current_page = 0;
+  } else {
+    pointer = (grid_size / pointers) - 1;
+    current_page = pattern_length;
+  }
+  pattern_ended = false;
+}
+
+bool is_pointer(int val) {
+  bool returnval = false;
+  int steplength = (gridx * gridy) / pointers;
+  for (int i = 0; i < pointers; i++) {
+    if (val == pointer + (steplength * i)) {
+      returnval = true;
+    }
+  }
+  return returnval;
+}
+
+void increment_sequence() {
+  int steplength = grid_size / pointers;
+  pattern_pointer = (current_page * grid_size) + pointer;
+  swinging = pointer % 2 == 0;
+  for (int i = 0; i < dac_count; i++) {
+    last_notes[i] = notes[i];
+  }
+  for (int i = 0; i < pointers; i++) {
+    int this_pointer = pattern_pointer + (steplength * i);
+    int this_note = 0;
+    bool set_triggers = false;
+    if (pattern_on[this_pointer]) {
+      this_note = pattern_tone[this_pointer];
+      set_triggers = true;
+    }
+    if (pointers == 1) {
+      notes[0] = this_note;
+      triggers[0] = false;
+      triggers[1] = set_triggers;
+      notes[2] = this_note;
+      triggers[2] = false;
+      triggers[3] = set_triggers;
+    }
+    if (pointers == 2) {
+      if (i == 0) {
+        notes[0] = this_note;
+        triggers[0] = false;
+        triggers[1] = set_triggers;
+      }
+      if (i == 1) {
+        notes[2] = this_note;
+        triggers[2] = false;
+        triggers[3] = set_triggers;
+      }
+    }
+    if (pointers == 4) {
+      triggers[i] = set_triggers;
     }
   }
 }
@@ -184,22 +194,18 @@ void increment_glide_mode(int amnt) {
 }
 
 void fire_trigger() {
-  if (!paused) {
-    last_clock_time = microtime;
-    swinging = !swinging;
+  if (!paused && !pattern_ended) {
+    update_pointer(incrementor);
     if (!pattern_ended) {
-      sync_out = false;
-      all_out = true;
-      increment_sequence(incrementor);
+      last_clock_time = microtime;
+      increment_sequence();
     } else {
-      sync_out = true;
-      all_out = true;
+      last_sync_time = microtime;
     }
   }
 }
 
 void fire_reset() {
-  pointer = 0;
-  current_page = 0;
-  increment_sequence(0);
+  reset_pointer();
+  increment_sequence();
 }

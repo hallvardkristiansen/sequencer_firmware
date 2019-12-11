@@ -57,13 +57,12 @@ void dur_press() {
 
 void mode_rotate() {
   change_pointers_count(enc_mode_mod);
-  increment_sequence(0);
 }
 void steps_rotate() {
   if (keypad_down) {
     increment_note(enc_steps_mod);
   } else {
-    increment_sequence(enc_steps_mod);
+    update_pointer(enc_steps_mod);
   }
 }
 void swing_rotate() {

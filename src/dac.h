@@ -55,7 +55,7 @@ void resolve_dacs() {
   if (update_spi_dacs && !spi_busy) {
     for (int i = 0; i < 4; i++) {
       if (triggers[i]) {
-        if (triggered && triggering) {
+        if (triggering) {
           set_dac(dacs_single[i], spi_dac_5v);
         } else {
           set_dac(dacs_single[i], spi_dac_0v);
@@ -64,24 +64,18 @@ void resolve_dacs() {
         semitone_to_dac(i, notes[i], last_notes[i]);
       }
     }
-    update_spi_dacs = false;
   }
   if (update_int_dacs) {
     if (syncing) {
-      if (all_out) {
-        analogWrite(all_out_pin, int_dac_5v);
-      }
-      if (sync_out) {
-        analogWrite(sync_out_pin, int_dac_5v);
-      }
+      analogWrite(sync_out_pin, int_dac_5v);
+    } else {
+      analogWrite(sync_out_pin, int_dac_0v);
+    }
+    if (triggering) {
+      analogWrite(all_out_pin, int_dac_5v);
     } else {
       analogWrite(all_out_pin, int_dac_0v);
-      analogWrite(sync_out_pin, int_dac_0v);
-      all_out = false;
-      sync_out = false;
     }
-
-    update_int_dacs = false;
   }
 }
 
