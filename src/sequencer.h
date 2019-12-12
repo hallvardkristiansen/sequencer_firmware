@@ -197,8 +197,8 @@ void increment_glide_mode(int amnt) {
 void fire_trigger() {
   if (!paused && !pattern_ended) {
     update_pointer(incrementor);
+    last_clock_time = microtime;
     if (!pattern_ended) {
-      last_clock_time = microtime;
       increment_sequence();
     } else {
       last_sync_time = microtime;

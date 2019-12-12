@@ -16,7 +16,7 @@ const unsigned int int_dac_hz = 997; // micros
 const unsigned int int_adc_hz = 1493; // micros
 const unsigned int temp_menu_dur = 2000; // millis
 const unsigned int trigger_dur = 10000; // micros
-const unsigned int sync_dur = 50000; // micros
+const unsigned int sync_dur = 20000; // micros
 
 const unsigned long swing_dur = 1000; // micros
 bool swinging = false;
@@ -55,7 +55,7 @@ int pointers = 1;
 int incrementor = 1;
 long pattern_length = initial_pattern_length;
 long pattern_pointer = 0;
-int pattern_tone[max_pattern_length] {0};
+int pattern_tone[max_pattern_length] {30};
 int pattern_swing[max_pattern_length] {0};
 int pattern_glide[max_pattern_length] {0};
 bool pattern_on[max_pattern_length] {false};
