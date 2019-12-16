@@ -6,16 +6,15 @@
 
 #include <pins.h>
 #include <init.h>
-#include <utils.h>
+#include <fram.h>
 #include <easing.h>
+#include <dac.h>
+#include <encoders.h>
+
 #include <sequencer.h>
 #include <ui.h>
-#include <keypad.h>
-#include <encoders.h>
-#include <fram.h>
-#include <dac.h>
-
 #include <polling.h>
+#include <utils.h>
 
 void setup() {
   Serial.begin(9600);
@@ -41,4 +40,5 @@ void loop() {
   resolve_interactions();
   resolve_dacs();
   save_state();
+  serial_print_debug();
 }

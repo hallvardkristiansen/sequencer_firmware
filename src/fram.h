@@ -60,6 +60,24 @@ void read_fram() {
   spi_busy = false;
 }
 
+void clear_state() {
+  for (int i = 0; i < max_pattern_length; i++) {
+    pattern_tone[i] = 30;
+    pattern_on[i] = false;
+    pattern_swing[i] = 0;
+    pattern_glide[i] = 0;
+  }
+  paused = true;
+  pattern_ended = false;
+  pattern_length = initial_pattern_length;
+  current_page = 0;
+  glide_mode = 0;
+  global_glide = 0;
+  global_swing = 0;
+  pointers = 1;
+  pointer = 0;
+}
+
 void save_state() {
   if (perform_save) {
     write_fram();

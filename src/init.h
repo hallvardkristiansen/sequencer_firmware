@@ -8,17 +8,20 @@ const uint16_t int_dac_0v = 0x076c;
 const uint16_t int_dac_5v = 0x00c8;
 const uint16_t int_dac_range = 0x0fa0;
 
+const unsigned int debug_serial_hz = 2000; // millis
 const unsigned int btn_poll_hz = 11; // millis
 const unsigned int key_poll_hz = 23; // millis
 const unsigned int save_hz = 10007; // millis
+const unsigned int btn_hold_wait = 2000; // millis
+const unsigned int temp_menu_dur = 2000; // millis
+
 const unsigned int spi_dac_hz = 61; // micros
 const unsigned int int_dac_hz = 997; // micros
 const unsigned int int_adc_hz = 1493; // micros
-const unsigned int temp_menu_dur = 2000; // millis
 const unsigned int trigger_dur = 10000; // micros
 const unsigned int sync_dur = 20000; // micros
+const unsigned int swing_dur = 1000; // micros
 
-const unsigned long swing_dur = 1000; // micros
 bool swinging = false;
 unsigned int glide_mode = 0;
 const unsigned int glide_modes = 29;
@@ -34,12 +37,14 @@ unsigned long millitime = 0; // millis
 unsigned long microtime = 0; // micros
 unsigned long last_key_polltime = 0; // millis
 unsigned long last_btn_polltime = 0; // millis
+unsigned long last_btn_press = 0;
 unsigned long last_int_dac_update = 0; // micros
 unsigned long last_int_adc_update = 0; // micros
 unsigned long last_spi_dac_update = 0; // micros
 unsigned long last_clock_time = 0; // micros
 unsigned long last_sync_time = 0; // micros
 unsigned long last_save_time = 0; // millis
+unsigned long last_print_time = 0; // millis
 
 const int gridx = 4;
 const int gridy = 4;
@@ -71,6 +76,7 @@ bool keypad_down = false;
 bool keypads_down[grid_size] {false};
 uint16_t semitones[60];
 
+bool print_debug = false;
 bool paused = false;
 bool triggered = false;
 bool triggering = true;
@@ -92,8 +98,16 @@ bool btn_mode_down = false;
 bool btn_steps_down = false;
 bool btn_swing_down = false;
 bool btn_dur_down = false;
+bool btn_hold_primed = false;
+bool all_btns_pressed = false;
 bool enc_modified = false;
 int enc_mode_mod = 0;
 int enc_steps_mod = 0;
 int enc_swing_mod = 0;
 int enc_dur_mod = 0;
+
+bool menu_mode_active = false;
+bool menu_steps_active = false;
+bool menu_swing_active = false;
+bool menu_dur_active = false;
+bool menu_semitones_active = false;

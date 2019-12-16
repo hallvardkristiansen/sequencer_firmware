@@ -38,14 +38,9 @@ void update_pointer(int val) {
   bool pointer_over_bounds = pointer + val > pointer_max;
   bool pointer_under_bounds = pointer + val < pointer_min;
   bool page_over_bounds = (current_page + 1) * grid_size >= pattern_length;
-  bool page_under_bounds = ((current_page - 1) * grid_size) < 0;
+  bool page_under_bounds = (current_page - 1) * grid_size < 0;
 
   pattern_ended = (pointer_over_bounds && page_over_bounds) || (pointer_under_bounds && page_under_bounds);
-
-  if (paused && pointer_over_bounds && page_over_bounds) {
-    change_pattern_length(1);
-    page_over_bounds = false;
-  }
 
   if (pointer_over_bounds && !page_over_bounds) {
     pointer = pointer_min;
@@ -64,7 +59,7 @@ void reset_pointer() {
     current_page = 0;
   } else {
     pointer = (grid_size / pointers) - 1;
-    current_page = pattern_length;
+    current_page = pattern_length / grid_size;
   }
   pattern_ended = false;
 }
@@ -157,7 +152,6 @@ void increment_swing(int amnt) {
     global_swing = 0;
   } else {
     global_swing += amnt;
-    Serial.println(global_swing);
   }
 }
 void increment_key_glide(int amnt) {
@@ -180,7 +174,6 @@ void increment_glide(int amnt) {
     global_glide = 0;
   } else {
     global_glide += amnt;
-    Serial.println(global_glide);
   }
 }
 void increment_glide_mode(int amnt) {
@@ -190,14 +183,13 @@ void increment_glide_mode(int amnt) {
     glide_mode = 0;
   } else {
     glide_mode += amnt;
-    Serial.println(glide_mode);
   }
 }
 
 void fire_trigger() {
   if (!paused && !pattern_ended) {
     update_pointer(incrementor);
-    last_clock_time = microtime;
+    last_clock_time = swinging ? microtime + (global_swing * swing_dur) : microtime;
     if (!pattern_ended) {
       increment_sequence();
     } else {

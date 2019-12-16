@@ -115,31 +115,33 @@ void update_timers() {
   microtime = micros();
 
   polling_keys = (millitime - last_key_polltime) >= key_poll_hz;
+  last_key_polltime = polling_keys ? millitime : last_key_polltime;
+
   polling_btns = (millitime - last_btn_polltime) >= btn_poll_hz;
+  last_btn_polltime = polling_btns ? millitime : last_btn_polltime;
+
   perform_save = (millitime - last_save_time) >= save_hz;
+  last_save_time = perform_save ? millitime : last_save_time;
+
+  print_debug = (millitime - last_print_time) >= debug_serial_hz;
+  last_print_time = print_debug ? millitime : last_print_time;
+
   update_spi_dacs = (microtime - last_spi_dac_update) >= spi_dac_hz;
+  last_spi_dac_update = update_spi_dacs ? microtime : last_spi_dac_update;
+
   update_int_dacs = (microtime - last_int_dac_update) >= int_dac_hz;
+  last_int_dac_update = update_int_dacs ? microtime : last_int_dac_update;
+
   adc_poll = (microtime - last_int_adc_update) >= int_adc_hz;
+  last_int_adc_update = adc_poll ? microtime : last_int_adc_update;
 
-  if (polling_keys || last_key_polltime > millitime) {
-    last_key_polltime = millitime;
-  }
-  if (polling_btns || last_btn_polltime > millitime) {
-    last_btn_polltime = millitime;
-  }
-  if (perform_save || last_save_time > millitime) {
-    last_save_time = millitime;
-  }
-  if (update_spi_dacs || last_spi_dac_update > microtime) {
-    last_spi_dac_update = microtime;
-  }
-  if (update_int_dacs || last_int_dac_update > microtime) {
-    last_int_dac_update = microtime;
-  }
-  if (adc_poll || last_int_adc_update > microtime) {
-    last_int_adc_update = microtime;
-  }
-
-  triggering = (microtime - last_clock_time) < trigger_dur;
+  triggering = microtime >= last_clock_time && (microtime - last_clock_time) < trigger_dur;
   syncing = (microtime - last_sync_time) < sync_dur;
+
+  btn_hold_primed = millitime - last_btn_press > btn_hold_wait;
+  menu_mode_active = btn_mode_down && btn_hold_primed;
+  menu_steps_active = btn_steps_down && btn_hold_primed;
+  menu_swing_active = btn_swing_down && btn_hold_primed;
+  menu_dur_active = btn_dur_down && btn_hold_primed;
+  menu_semitones_active = keypad_down && btn_hold_primed;
 }

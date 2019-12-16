@@ -41,7 +41,9 @@ void semitone_to_dac(int dac, int note, int last_note) {
     double time_elapsed = microtime - last_clock_time;
     double time_duration = glide_dur * global_glide;
     double time = time_elapsed / time_duration;
-    if (time < 1.0) {
+    if (time < 0.0) {
+      dac_value = semitones[last_note];
+    } else if (time < 1.0) {
       double mult = get_easing(time);
       double note_diff = semitones[last_note] - semitones[note];
       double note_offset = note_diff * mult;
