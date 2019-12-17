@@ -9,7 +9,7 @@ const uint16_t int_dac_5v = 0x00c8;
 const uint16_t int_dac_range = 0x0fa0;
 
 const unsigned int debug_serial_hz = 2000; // millis
-const unsigned int btn_poll_hz = 11; // millis
+const unsigned int btn_poll_hz = 5; // millis
 const unsigned int key_poll_hz = 23; // millis
 const unsigned int save_hz = 10007; // millis
 const unsigned int btn_hold_wait = 2000; // millis
@@ -21,30 +21,30 @@ const unsigned int int_adc_hz = 1493; // micros
 const unsigned int trigger_dur = 10000; // micros
 const unsigned int sync_dur = 20000; // micros
 const unsigned int swing_dur = 1000; // micros
+const unsigned int glide_dur = 5000; // micros
 
 bool swinging = false;
-unsigned int glide_mode = 0;
-const unsigned int glide_modes = 29;
-const unsigned long glide_dur = 5000; // micros
+int glide_mode = 0;
+const int glide_modes = 29;
 
 bool adc_poll = false;
-unsigned int cv_mode = 0;
-unsigned int cv_steps = 0;
-unsigned int cv_swing = 0;
-unsigned int cv_dur = 0;
+int cv_mode = 0;
+int cv_steps = 0;
+int cv_swing = 0;
+int cv_dur = 0;
 
-unsigned long millitime = 0; // millis
-unsigned long microtime = 0; // micros
-unsigned long last_key_polltime = 0; // millis
-unsigned long last_btn_polltime = 0; // millis
-unsigned long last_btn_press = 0;
-unsigned long last_int_dac_update = 0; // micros
-unsigned long last_int_adc_update = 0; // micros
-unsigned long last_spi_dac_update = 0; // micros
-unsigned long last_clock_time = 0; // micros
-unsigned long last_sync_time = 0; // micros
-unsigned long last_save_time = 0; // millis
-unsigned long last_print_time = 0; // millis
+long millitime = 0; // millis
+long microtime = 0; // micros
+long last_key_polltime = 0; // millis
+long last_btn_polltime = 0; // millis
+long last_btn_press = 0;
+long last_int_dac_update = 0; // micros
+long last_int_adc_update = 0; // micros
+long last_spi_dac_update = 0; // micros
+long last_clock_time = 0; // micros
+long last_sync_time = 0; // micros
+long last_save_time = 0; // millis
+long last_print_time = 0; // millis
 
 const int gridx = 4;
 const int gridy = 4;
@@ -53,13 +53,13 @@ const int initial_pattern_length = 32;
 const int max_pattern_length = 2048;
 const int dac_count = 4;
 int current_page = 0;
-int current_x = 0;
-int current_y = 0;
 int pointer = 0;
 int pointers = 1;
+int playback_mode = 0;
 int incrementor = 1;
-long pattern_length = initial_pattern_length;
-long pattern_pointer = 0;
+
+int pattern_length = initial_pattern_length;
+int pattern_pointer = 0;
 int pattern_tone[max_pattern_length] {30};
 int pattern_swing[max_pattern_length] {0};
 int pattern_glide[max_pattern_length] {0};

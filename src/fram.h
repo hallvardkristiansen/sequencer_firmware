@@ -27,6 +27,7 @@ void write_fram() {
   SPI.transfer(global_swing);
   SPI.transfer(pointers);
   SPI.transfer(pointer);
+  SPI.transfer(playback_mode);
   SPI.endTransaction();
   digitalWrite(fram_cs_pin, HIGH);
   spi_busy = false;
@@ -55,6 +56,7 @@ void read_fram() {
   global_swing = SPI.transfer(0x00);
   pointers = SPI.transfer(0x00);
   pointer = SPI.transfer(0x00);
+  playback_mode = SPI.transfer(0x00);
   SPI.endTransaction();
   digitalWrite(fram_cs_pin, HIGH);
   spi_busy = false;
@@ -76,6 +78,7 @@ void clear_state() {
   global_swing = 0;
   pointers = 1;
   pointer = 0;
+  playback_mode = 0;
 }
 
 void save_state() {

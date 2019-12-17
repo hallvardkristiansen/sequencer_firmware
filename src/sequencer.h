@@ -54,12 +54,16 @@ void update_pointer(int val) {
 }
 
 void reset_pointer() {
-  if (incrementor > 0) {
-    pointer = 0;
-    current_page = 0;
+  if (playback_mode == 1) {
+    incrementor = -incrementor;
   } else {
-    pointer = (grid_size / pointers) - 1;
-    current_page = pattern_length / grid_size;
+    if (incrementor > 0) {
+      pointer = 0;
+      current_page = 0;
+    } else {
+      pointer = (grid_size / pointers) - 1;
+      current_page = (pattern_length / grid_size) - 1;
+    }
   }
   pattern_ended = false;
 }

@@ -37,10 +37,15 @@ void mode_press() {
         fire_reset();
       }
       if (!btn_steps_down && !btn_swing_down && !btn_dur_down) {
-        if (incrementor == 1) {
-          incrementor = -1;
+        if (playback_mode < 3) {
+          playback_mode++;
         } else {
+          playback_mode = 0;
+        }
+        if (playback_mode == 0) {
           incrementor = 1;
+        } else if (playback_mode == 2) {
+          incrementor = -1;
         }
       }
     }
@@ -129,10 +134,19 @@ void keypad_released(int key_num) {
   keypads_down[key_num] = false;
   keypad_down = false;
   int pattern_index = (grid_size * current_page) + key_num;
-  if (!pattern_on[pattern_index]) {
-    pattern_on[pattern_index] = true;
-  } else if (!enc_modified && pattern_on[pattern_index]) {
-    pattern_on[pattern_index] = false;
+
+  if (menu_steps_active) {
+    pattern_length = grid_size * key_num;
+  } else if (menu_swing_active) {
+    global_swing = key_num;
+  } else if (menu_dur_active) {
+    global_glide = key_num;
+  } else {
+    if (!pattern_on[pattern_index]) {
+      pattern_on[pattern_index] = true;
+    } else if (!enc_modified && pattern_on[pattern_index]) {
+      pattern_on[pattern_index] = false;
+    }
   }
   enc_modified = false;
 }
@@ -181,15 +195,27 @@ void refresh_keypad_colours() {
     }
   } else if (menu_steps_active) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      trellis.pixels.setPixelColor(i, 0x111199);
+      if (i <= pattern_length / grid_size) {
+        trellis.pixels.setPixelColor(i, 0x111199);
+      } else {
+        trellis.pixels.setPixelColor(i, 0x000001);
+      }
     }
   } else if (menu_swing_active) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      trellis.pixels.setPixelColor(i, 0x999911);
+      if (i <= global_swing) {
+        trellis.pixels.setPixelColor(i, 0x999911);
+      } else {
+        trellis.pixels.setPixelColor(i, 0x010100);
+      }
     }
   } else if (menu_dur_active) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      trellis.pixels.setPixelColor(i, 0x991199);
+      if (i <= global_glide) {
+        trellis.pixels.setPixelColor(i, 0x991199);
+      } else {
+        trellis.pixels.setPixelColor(i, 0x010001);
+      }
     }
   } else if (menu_semitones_active) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
