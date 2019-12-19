@@ -53,21 +53,6 @@ void update_pointer(int val) {
   }
 }
 
-void reset_pointer() {
-  if (playback_mode == 1) {
-    incrementor = -incrementor;
-  } else {
-    if (incrementor > 0) {
-      pointer = 0;
-      current_page = 0;
-    } else {
-      pointer = (grid_size / pointers) - 1;
-      current_page = (pattern_length / grid_size) - 1;
-    }
-  }
-  pattern_ended = false;
-}
-
 bool is_pointer(int val) {
   bool returnval = false;
   int steplength = (gridx * gridy) / pointers;
@@ -121,17 +106,12 @@ void increment_sequence() {
 }
 
 void increment_note(int amnt) {
-  for (int i = 0; i < (int)sizeof(keypads_down); i++) {
-    if (keypads_down[i]) {
-      int tone_index = (current_page * grid_size) + i;
-      if (pattern_tone[tone_index] + amnt >= (int)sizeof(semitones)) {
-        pattern_tone[tone_index] = (int)sizeof(semitones) -1;
-      } else if (pattern_tone[tone_index] + amnt < 0) {
-        pattern_tone[tone_index] = 0;
-      } else {
-        pattern_tone[tone_index] += amnt;
-      }
-    }
+  if (pattern_tone[last_keypad_down_index] + amnt >= (int)sizeof(semitones)) {
+    pattern_tone[last_keypad_down_index] = (int)sizeof(semitones) -1;
+  } else if (pattern_tone[last_keypad_down_index] + amnt < 0) {
+    pattern_tone[last_keypad_down_index] = 0;
+  } else {
+    pattern_tone[last_keypad_down_index] += amnt;
   }
   last_clock_time = microtime;
   increment_sequence();
@@ -200,6 +180,28 @@ void fire_trigger() {
       last_sync_time = microtime;
     }
   }
+}
+
+void reset_pointer() {
+  if (playback_mode == 1) {
+    incrementor = -incrementor;
+    if (incrementor > 0) {
+      pointer = 1;
+      current_page = 0;
+    } else {
+      pointer = (grid_size / pointers) - 2;
+      current_page = (pattern_length / grid_size) - 1;
+    }
+  } else {
+    if (incrementor > 0) {
+      pointer = 0;
+      current_page = 0;
+    } else {
+      pointer = (grid_size / pointers) - 1;
+      current_page = (pattern_length / grid_size) - 1;
+    }
+  }
+  pattern_ended = false;
 }
 
 void fire_reset() {

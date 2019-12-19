@@ -8,20 +8,20 @@ const uint16_t int_dac_0v = 0x076c;
 const uint16_t int_dac_5v = 0x00c8;
 const uint16_t int_dac_range = 0x0fa0;
 
-const unsigned int debug_serial_hz = 2000; // millis
-const unsigned int btn_poll_hz = 5; // millis
-const unsigned int key_poll_hz = 23; // millis
-const unsigned int save_hz = 10007; // millis
-const unsigned int btn_hold_wait = 2000; // millis
-const unsigned int temp_menu_dur = 2000; // millis
+const int debug_serial_hz = 2000; // millis
+const int btn_poll_hz = 5; // millis
+const int key_poll_hz = 23; // millis
+const int save_hz = 10007; // millis
+const int btn_hold_wait = 1000; // millis
+const int temp_menu_dur = 2000; // millis
 
-const unsigned int spi_dac_hz = 61; // micros
-const unsigned int int_dac_hz = 997; // micros
-const unsigned int int_adc_hz = 1493; // micros
-const unsigned int trigger_dur = 10000; // micros
-const unsigned int sync_dur = 20000; // micros
-const unsigned int swing_dur = 1000; // micros
-const unsigned int glide_dur = 5000; // micros
+const int spi_dac_hz = 61; // micros
+const int int_dac_hz = 997; // micros
+const int int_adc_hz = 1493; // micros
+const int trigger_dur = 10000; // micros
+const int sync_dur = 20000; // micros
+const int swing_dur = 1000; // micros
+const int glide_dur = 5000; // micros
 
 bool swinging = false;
 int glide_mode = 0;
@@ -37,7 +37,7 @@ long millitime = 0; // millis
 long microtime = 0; // micros
 long last_key_polltime = 0; // millis
 long last_btn_polltime = 0; // millis
-long last_btn_press = 0;
+long last_btn_press = 0; // millis
 long last_int_dac_update = 0; // micros
 long last_int_adc_update = 0; // micros
 long last_spi_dac_update = 0; // micros
@@ -45,6 +45,7 @@ long last_clock_time = 0; // micros
 long last_sync_time = 0; // micros
 long last_save_time = 0; // millis
 long last_print_time = 0; // millis
+long last_enc_action = 0; // millis
 
 const int gridx = 4;
 const int gridy = 4;
@@ -74,6 +75,7 @@ bool update_spi_dacs = true;
 bool update_int_dacs = true;
 bool keypad_down = false;
 bool keypads_down[grid_size] {false};
+int last_keypad_down_index = 0;
 uint16_t semitones[60];
 
 bool print_debug = false;
@@ -100,6 +102,7 @@ bool btn_swing_down = false;
 bool btn_dur_down = false;
 bool btn_hold_primed = false;
 bool all_btns_pressed = false;
+bool keypad_mode_menu = false;
 bool enc_modified = false;
 int enc_mode_mod = 0;
 int enc_steps_mod = 0;

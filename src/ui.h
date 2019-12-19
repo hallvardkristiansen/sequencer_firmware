@@ -91,7 +91,6 @@ void dur_press() {
       } else {
         glide_mode++;
       }
-      Serial.println(glide_mode);
     }
     enc_modified = false;
   }
@@ -102,6 +101,9 @@ void mode_rotate() {
 }
 void steps_rotate() {
   if (keypad_down) {
+    menu_semitones_active = true;
+    menu_swing_active = false;
+    menu_dur_active = false;
     increment_note(enc_steps_mod);
   } else {
     update_pointer(enc_steps_mod);
@@ -111,6 +113,10 @@ void swing_rotate() {
   if (keypad_down) {
     increment_key_swing(enc_swing_mod);
   } else {
+    last_enc_action = millitime;
+    menu_swing_active = true;
+    menu_semitones_active = false;
+    menu_dur_active = false;
     increment_swing(enc_swing_mod);
   }
 }
@@ -118,6 +124,10 @@ void dur_rotate() {
   if (keypad_down) {
     increment_key_glide(enc_dur_mod);
   } else {
+    last_enc_action = millitime;
+    menu_dur_active = true;
+    menu_swing_active = false;
+    menu_semitones_active = false;
     increment_glide(enc_dur_mod);
   }
   if (btn_steps_down) {
@@ -128,11 +138,13 @@ void dur_rotate() {
 void keypad_pressed(int key_num) {
   keypads_down[key_num] = true;
   keypad_down = true;
+  last_keypad_down_index = (grid_size * current_page) + key_num;
   prime_btn_hold();
 }
 void keypad_released(int key_num) {
   keypads_down[key_num] = false;
   keypad_down = false;
+  menu_semitones_active = false;
   int pattern_index = (grid_size * current_page) + key_num;
 
   if (menu_steps_active) {
@@ -195,7 +207,7 @@ void refresh_keypad_colours() {
     }
   } else if (menu_steps_active) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      if (i <= pattern_length / grid_size) {
+      if (i < pattern_length / grid_size) {
         trellis.pixels.setPixelColor(i, 0x111199);
       } else {
         trellis.pixels.setPixelColor(i, 0x000001);
@@ -203,7 +215,7 @@ void refresh_keypad_colours() {
     }
   } else if (menu_swing_active) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      if (i <= global_swing) {
+      if (i < global_swing) {
         trellis.pixels.setPixelColor(i, 0x999911);
       } else {
         trellis.pixels.setPixelColor(i, 0x010100);
@@ -211,7 +223,7 @@ void refresh_keypad_colours() {
     }
   } else if (menu_dur_active) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      if (i <= global_glide) {
+      if (i < global_glide) {
         trellis.pixels.setPixelColor(i, 0x991199);
       } else {
         trellis.pixels.setPixelColor(i, 0x010001);
@@ -219,7 +231,11 @@ void refresh_keypad_colours() {
     }
   } else if (menu_semitones_active) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      trellis.pixels.setPixelColor(i, 0xff1166);
+      if (i < pattern_tone[last_keypad_down_index]) {
+        trellis.pixels.setPixelColor(i, 0xff1166);
+      } else {
+        trellis.pixels.setPixelColor(i, 0x010001);
+      }
     }
   } else {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {

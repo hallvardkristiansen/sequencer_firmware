@@ -139,9 +139,10 @@ void update_timers() {
   syncing = (microtime - last_sync_time) < sync_dur;
 
   btn_hold_primed = millitime - last_btn_press > btn_hold_wait;
+  keypad_mode_menu = millitime - last_enc_action < temp_menu_dur;
   menu_mode_active = btn_mode_down && btn_hold_primed;
   menu_steps_active = btn_steps_down && btn_hold_primed;
-  menu_swing_active = btn_swing_down && btn_hold_primed;
-  menu_dur_active = btn_dur_down && btn_hold_primed;
-  menu_semitones_active = keypad_down && btn_hold_primed;
+  menu_swing_active = keypad_mode_menu ? menu_swing_active : false;
+  menu_dur_active = keypad_mode_menu ? menu_dur_active : false;
+  refresh_trellis = (!refresh_trellis && !keypad_mode_menu && (menu_swing_active || menu_dur_active)) ? true : refresh_trellis;
 }
