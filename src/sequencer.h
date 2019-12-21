@@ -103,6 +103,7 @@ void increment_sequence() {
       triggers[i] = set_triggers;
     }
   }
+  refresh_trellis = true;
 }
 
 void increment_note(int amnt) {

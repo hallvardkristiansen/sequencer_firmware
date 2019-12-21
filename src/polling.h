@@ -29,7 +29,6 @@ void poll_clock() {
   if (!digitalRead(clock_pin) && !triggered){
     triggered = true;
     fire_trigger();
-    refresh_trellis = true;
   } else if (digitalRead(clock_pin) && triggered) {
     triggered = false;
   }
@@ -39,7 +38,6 @@ void poll_rst() {
   if(!digitalRead(rst_pin) && !reset){
     reset = true;
     fire_reset();
-    refresh_trellis = true;
   } else if (digitalRead(rst_pin) && reset) {
     reset = false;
   }
@@ -69,44 +67,36 @@ void poll_ui() {
 void resolve_interactions() {
   if (btn_mode_state != btn_mode_down) {
     btn_mode_down = btn_mode_state;
-    mode_press();
-    refresh_trellis = true;
+    btn_press(0);
   }
   if (btn_steps_state != btn_steps_down) {
     btn_steps_down = btn_steps_state;
-    steps_press();
-    refresh_trellis = true;
+    btn_press(1);
   }
   if (btn_swing_state != btn_swing_down) {
     btn_swing_down = btn_swing_state;
-    swing_press();
-    refresh_trellis = true;
+    btn_press(2);
   }
   if (btn_dur_state != btn_dur_down) {
     btn_dur_down = btn_dur_state;
-    dur_press();
-    refresh_trellis = true;
+    btn_press(3);
   }
 
   if (enc_mode_mod != 0) {
-    mode_rotate();
+    enc_rotate(0);
     enc_mode_mod = 0;
-    refresh_trellis = true;
   }
   if (enc_steps_mod != 0) {
-    steps_rotate();
+    enc_rotate(1);
     enc_steps_mod = 0;
-    refresh_trellis = true;
   }
   if (enc_swing_mod != 0) {
-    swing_rotate();
+    enc_rotate(2);
     enc_swing_mod = 0;
-    refresh_trellis = true;
   }
   if (enc_dur_mod != 0) {
-    dur_rotate();
+    enc_rotate(3);
     enc_dur_mod = 0;
-    refresh_trellis = true;
   }
 }
 
@@ -144,5 +134,4 @@ void update_timers() {
   menu_steps_active = btn_steps_down && btn_hold_primed;
   menu_swing_active = keypad_mode_menu ? menu_swing_active : false;
   menu_dur_active = keypad_mode_menu ? menu_dur_active : false;
-  refresh_trellis = (!refresh_trellis && !keypad_mode_menu && (menu_swing_active || menu_dur_active)) ? true : refresh_trellis;
 }

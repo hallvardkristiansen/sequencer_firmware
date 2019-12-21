@@ -26,113 +26,101 @@ void all_hold_release() {
   all_btns_pressed = false;
 }
 
-void mode_press() {
-  if (btn_mode_down) {
+void btn_press(int which) {
+  bool btn_down = btn_mode_down || btn_steps_down || btn_swing_down || btn_dur_down;
+  if (btn_down) {
     prime_btn_hold();
   } else {
     if (!enc_modified) {
       all_hold_release();
+      switch (which) {
+        case 0: // mode
+          if (btn_steps_down) {
+            fire_reset();
+          }
+          if (!btn_steps_down && !btn_swing_down && !btn_dur_down) {
+            if (playback_mode < 3) {
+              playback_mode++;
+            } else {
+              playback_mode = 0;
+            }
+            if (playback_mode == 0) {
+              incrementor = 1;
+            } else if (playback_mode == 2) {
+              incrementor = -1;
+            }
+          }
+        break;
+        case 1: // steps
+          if (btn_mode_down) {
+            fire_reset();
+          }
+          if (!btn_mode_down && !btn_swing_down && !btn_dur_down) {
+            paused = !paused;
+            pattern_ended = false;
+          }
+        break;
+        case 2: // swing
+        break;
+        case 3: // dur
+          if (glide_mode + 1 > glide_modes) {
+            glide_mode = 0;
+          } else {
+            glide_mode++;
+          }
+        break;
+      }
+    }
+    enc_modified = false;
+    refresh_trellis = true;
+  }
+}
 
-      if (btn_steps_down) {
-        fire_reset();
-      }
-      if (!btn_steps_down && !btn_swing_down && !btn_dur_down) {
-        if (playback_mode < 3) {
-          playback_mode++;
-        } else {
-          playback_mode = 0;
-        }
-        if (playback_mode == 0) {
-          incrementor = 1;
-        } else if (playback_mode == 2) {
-          incrementor = -1;
-        }
-      }
-    }
-    enc_modified = false;
-  }
-}
-void steps_press() {
-  if (btn_steps_down) {
-    prime_btn_hold();
-  } else {
-    if (!enc_modified) {
-      all_hold_release();
-      if (btn_mode_down) {
-        fire_reset();
-      }
-      if (!btn_mode_down && !btn_swing_down && !btn_dur_down) {
-        paused = !paused;
-        pattern_ended = false;
-      }
-    }
-    enc_modified = false;
-  }
-}
-void swing_press() {
-  if (btn_swing_down) {
-    prime_btn_hold();
-  } else {
-    if (!enc_modified) {
-      all_hold_release();
-    }
-    enc_modified = false;
-  }
-}
-void dur_press() {
-  if (btn_dur_down) {
-    prime_btn_hold();
-  } else {
-    if (!enc_modified) {
-      all_hold_release();
-
-      if (glide_mode + 1 > glide_modes) {
-        glide_mode = 0;
+void enc_rotate(int which) {
+  switch (which) {
+    case 0: // mode
+      change_pointers_count(enc_mode_mod);
+    break;
+    case 1: // steps
+      if (keypad_down) {
+        menu_semitones_active = true;
+        menu_swing_active = false;
+        menu_dur_active = false;
+        increment_note(enc_steps_mod);
       } else {
-        glide_mode++;
+        update_pointer(enc_steps_mod);
+        menu_swing_active = false;
+        menu_semitones_active = false;
+        menu_dur_active = false;
       }
-    }
-    enc_modified = false;
+    break;
+    case 2: // swing
+      if (keypad_down) {
+        increment_key_swing(enc_swing_mod);
+      } else {
+        last_enc_action = millitime;
+        menu_swing_active = true;
+        menu_semitones_active = false;
+        menu_dur_active = false;
+        increment_swing(enc_swing_mod);
+      }
+    break;
+    case 3: // dur
+      if (keypad_down) {
+        increment_key_glide(enc_dur_mod);
+      } else {
+        last_enc_action = millitime;
+        menu_dur_active = true;
+        menu_swing_active = false;
+        menu_semitones_active = false;
+        increment_glide(enc_dur_mod);
+      }
+      if (btn_steps_down) {
+        change_pattern_length(enc_dur_mod);
+      }
+    break;
   }
-}
-
-void mode_rotate() {
-  change_pointers_count(enc_mode_mod);
-}
-void steps_rotate() {
-  if (keypad_down) {
-    menu_semitones_active = true;
-    menu_swing_active = false;
-    menu_dur_active = false;
-    increment_note(enc_steps_mod);
-  } else {
-    update_pointer(enc_steps_mod);
-  }
-}
-void swing_rotate() {
-  if (keypad_down) {
-    increment_key_swing(enc_swing_mod);
-  } else {
-    last_enc_action = millitime;
-    menu_swing_active = true;
-    menu_semitones_active = false;
-    menu_dur_active = false;
-    increment_swing(enc_swing_mod);
-  }
-}
-void dur_rotate() {
-  if (keypad_down) {
-    increment_key_glide(enc_dur_mod);
-  } else {
-    last_enc_action = millitime;
-    menu_dur_active = true;
-    menu_swing_active = false;
-    menu_semitones_active = false;
-    increment_glide(enc_dur_mod);
-  }
-  if (btn_steps_down) {
-    change_pattern_length(enc_dur_mod);
-  }
+  refresh_trellis = true;
 }
 
 void keypad_pressed(int key_num) {
