@@ -55,7 +55,7 @@ void btn_press(int which) {
           if (btn_mode_down) {
             fire_reset();
           }
-          if (!btn_mode_down && !btn_swing_down && !btn_dur_down) {
+          if (!menu_steps_active && !btn_mode_down && !btn_swing_down && !btn_dur_down) {
             paused = !paused;
             pattern_ended = false;
           }
@@ -69,6 +69,10 @@ void btn_press(int which) {
             glide_mode++;
           }
         break;
+      }
+    } else {
+      if (btn_steps_down) {
+        update_pointer(0);
       }
     }
     enc_modified = false;
@@ -95,28 +99,33 @@ void enc_rotate(int which) {
       }
     break;
     case 2: // swing
-      if (keypad_down) {
-        increment_key_swing(enc_swing_mod);
+      if (btn_steps_down) {
+        change_pattern_start(enc_swing_mod);
       } else {
-        last_enc_action = millitime;
-        menu_swing_active = true;
-        menu_semitones_active = false;
-        menu_dur_active = false;
-        increment_swing(enc_swing_mod);
+        if (keypad_down) {
+          increment_key_swing(enc_swing_mod);
+        } else {
+          last_enc_action = millitime;
+          menu_swing_active = true;
+          menu_semitones_active = false;
+          menu_dur_active = false;
+          increment_swing(enc_swing_mod);
+        }
       }
     break;
     case 3: // dur
-      if (keypad_down) {
-        increment_key_glide(enc_dur_mod);
-      } else {
-        last_enc_action = millitime;
-        menu_dur_active = true;
-        menu_swing_active = false;
-        menu_semitones_active = false;
-        increment_glide(enc_dur_mod);
-      }
       if (btn_steps_down) {
         change_pattern_length(enc_dur_mod);
+      } else {
+        if (keypad_down) {
+          increment_key_glide(enc_dur_mod);
+        } else {
+          last_enc_action = millitime;
+          menu_dur_active = true;
+          menu_swing_active = false;
+          menu_semitones_active = false;
+          increment_glide(enc_dur_mod);
+        }
       }
     break;
   }
@@ -152,7 +161,6 @@ void keypad_released(int key_num) {
 }
 
 uint32_t Wheel(byte WheelPos) {
-  return trellis.pixels.Color(WheelPos, 0, 0);
   if(WheelPos < 85) {
    return trellis.pixels.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
   } else if(WheelPos < 170) {
@@ -164,10 +172,11 @@ uint32_t Wheel(byte WheelPos) {
   }
   return 0;
 }
+
 uint32_t keypad_color(int num) {
   double mult = 250 / 60;
   double val = (pattern_tone[(current_page * grid_size) + num] * mult) + 5;
-  uint32_t returnval = Wheel((int)val);
+  uint32_t returnval = trellis.pixels.Color(val, 0, 0);
   return returnval;
 }
 
@@ -195,34 +204,49 @@ void refresh_keypad_colours() {
     }
   } else if (menu_steps_active) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      if (i < pattern_length / grid_size) {
+      if (i < (pattern_start + pattern_length) / grid_size && i >= pattern_start / grid_size) {
         trellis.pixels.setPixelColor(i, 0x111199);
       } else {
         trellis.pixels.setPixelColor(i, 0x000001);
       }
     }
   } else if (menu_swing_active) {
+    int color_step = floor(global_swing / grid_size);
+    int relative_step = global_swing % grid_size;
+
+    uint32_t active_color = Wheel(color_step * 16);
+    uint32_t inactive_color = 0x010101;
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      if (i < global_swing) {
-        trellis.pixels.setPixelColor(i, 0x999911);
+      if (i < relative_step) {
+        trellis.pixels.setPixelColor(i, active_color);
       } else {
-        trellis.pixels.setPixelColor(i, 0x010100);
+        trellis.pixels.setPixelColor(i, inactive_color);
       }
     }
   } else if (menu_dur_active) {
+    int color_step = floor(global_glide / grid_size);
+    int relative_step = global_glide % grid_size;
+
+    uint32_t active_color = Wheel(color_step * 16);
+    uint32_t inactive_color = 0x010100;
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      if (i < global_glide) {
-        trellis.pixels.setPixelColor(i, 0x991199);
+      if (i < relative_step) {
+        trellis.pixels.setPixelColor(i, active_color);
       } else {
-        trellis.pixels.setPixelColor(i, 0x010001);
+        trellis.pixels.setPixelColor(i, inactive_color);
       }
     }
   } else if (menu_semitones_active) {
+    float color_step = floor(pattern_tone[last_keypad_down_index] / grid_size);
+    int relative_step = pattern_tone[last_keypad_down_index] % grid_size;
+
+    uint32_t active_color = Wheel(color_step * 16);
+    uint32_t inactive_color = 0x000001;
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      if (i < pattern_tone[last_keypad_down_index]) {
-        trellis.pixels.setPixelColor(i, 0xff1166);
+      if (i < relative_step) {
+        trellis.pixels.setPixelColor(i, active_color);
       } else {
-        trellis.pixels.setPixelColor(i, 0x010001);
+        trellis.pixels.setPixelColor(i, inactive_color);
       }
     }
   } else {

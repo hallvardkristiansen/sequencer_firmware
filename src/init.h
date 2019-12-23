@@ -60,6 +60,7 @@ int playback_mode = 0;
 int incrementor = 1;
 
 int pattern_length = initial_pattern_length;
+int pattern_start = 0;
 int pattern_pointer = 0;
 int pattern_tone[max_pattern_length] {30};
 int pattern_swing[max_pattern_length] {0};

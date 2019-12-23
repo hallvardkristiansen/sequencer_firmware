@@ -28,6 +28,7 @@ void write_fram() {
   SPI.transfer(pointers);
   SPI.transfer(pointer);
   SPI.transfer(playback_mode);
+  SPI.transfer(pattern_start);
   SPI.endTransaction();
   digitalWrite(fram_cs_pin, HIGH);
   spi_busy = false;
@@ -57,6 +58,7 @@ void read_fram() {
   pointers = SPI.transfer(0x00);
   pointer = SPI.transfer(0x00);
   playback_mode = SPI.transfer(0x00);
+  pattern_start = SPI.transfer(0x00);
   SPI.endTransaction();
   digitalWrite(fram_cs_pin, HIGH);
   spi_busy = false;
@@ -79,6 +81,7 @@ void clear_state() {
   pointers = 1;
   pointer = 0;
   playback_mode = 0;
+  pattern_start = 0;
 }
 
 void save_state() {

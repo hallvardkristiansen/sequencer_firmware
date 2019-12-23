@@ -31,14 +31,28 @@ void change_pattern_length(int amnt) {
   }
 }
 
+void change_pattern_start(int amnt) {
+  if (amnt > 0) {
+    pattern_start += grid_size * amnt;
+  } else {
+    int deduct = grid_size * (amnt * -1);
+    if (pattern_start - deduct < 0) {
+      pattern_start = 0;
+    } else {
+      pattern_start -= deduct;
+    }
+  }
+  current_page = pattern_start / grid_size;
+}
+
 void update_pointer(int val) {
   int max_steps = grid_size / pointers;
   int pointer_min = 0;
   int pointer_max = max_steps - 1;
   bool pointer_over_bounds = pointer + val > pointer_max;
   bool pointer_under_bounds = pointer + val < pointer_min;
-  bool page_over_bounds = (current_page + 1) * grid_size >= pattern_length;
-  bool page_under_bounds = (current_page - 1) * grid_size < 0;
+  bool page_over_bounds = (current_page + 1) * grid_size >= pattern_start + pattern_length;
+  bool page_under_bounds = (current_page - 1) * grid_size < pattern_start;
 
   pattern_ended = (pointer_over_bounds && page_over_bounds) || (pointer_under_bounds && page_under_bounds);
 
@@ -188,18 +202,18 @@ void reset_pointer() {
     incrementor = -incrementor;
     if (incrementor > 0) {
       pointer = 1;
-      current_page = 0;
+      current_page = pattern_start / grid_size;
     } else {
       pointer = (grid_size / pointers) - 2;
-      current_page = (pattern_length / grid_size) - 1;
+      current_page = ((pattern_start + pattern_length) / grid_size) - 1;
     }
   } else {
     if (incrementor > 0) {
       pointer = 0;
-      current_page = 0;
+      current_page = pattern_start / grid_size;
     } else {
       pointer = (grid_size / pointers) - 1;
-      current_page = (pattern_length / grid_size) - 1;
+      current_page = ((pattern_start + pattern_length) / grid_size) - 1;
     }
   }
   pattern_ended = false;
