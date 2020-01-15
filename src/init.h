@@ -9,21 +9,22 @@ const uint16_t int_dac_5v = 0x00c8;
 const uint16_t int_dac_range = 0x0fa0;
 
 const int debug_serial_hz = 2000; // millis
-const int btn_poll_hz = 5; // millis
-const int key_poll_hz = 23; // millis
+const int btn_poll_hz = 7; // millis
+const int key_poll_hz = 61; // millis
 const int save_hz = 10007; // millis
 const int btn_hold_wait = 1000; // millis
 const int temp_menu_dur = 2000; // millis
 
-const int spi_dac_hz = 61; // micros
+const int spi_dac_hz = 191; // micros
 const int int_dac_hz = 997; // micros
 const int int_adc_hz = 1493; // micros
-const int trigger_dur = 10000; // micros
+const int trigger_dur = 15000; // micros
 const int sync_dur = 20000; // micros
 const int swing_dur = 1000; // micros
 const int glide_dur = 5000; // micros
 
 bool swinging = false;
+int swing_delay = 0;
 int glide_mode = 0;
 const int glide_modes = 29;
 
@@ -72,6 +73,8 @@ byte setting_ui[grid_size] {0x00};
 bool triggers[dac_count] {false};
 int notes[dac_count] {0};
 int last_notes[dac_count] {0};
+int glide[dac_count] {0};
+int swing[dac_count] {0};
 bool update_spi_dacs = true;
 bool update_int_dacs = true;
 bool keypad_down = false;

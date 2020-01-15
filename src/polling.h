@@ -125,7 +125,7 @@ void update_timers() {
   adc_poll = (microtime - last_int_adc_update) >= int_adc_hz;
   last_int_adc_update = adc_poll ? microtime : last_int_adc_update;
 
-  triggering = microtime >= last_clock_time && (microtime - last_clock_time) < trigger_dur;
+  triggering = microtime >= (last_clock_time + swing_delay) && (microtime - (last_clock_time + swing_delay)) < trigger_dur;
   syncing = (microtime - last_sync_time) < sync_dur;
 
   btn_hold_primed = millitime - last_btn_press > btn_hold_wait;

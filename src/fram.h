@@ -3,7 +3,6 @@ void initialise_fram() {
 }
 
 void write_fram() {
-  Serial.println("Saving...");
   spi_busy = true;
   digitalWrite(fram_cs_pin, LOW);
   SPI.beginTransaction(spi_settings);
@@ -85,7 +84,7 @@ void clear_state() {
 }
 
 void save_state() {
-  if (perform_save) {
+  if (perform_save && paused) {
     write_fram();
   }
 }

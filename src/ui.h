@@ -26,6 +26,19 @@ void all_hold_release() {
   all_btns_pressed = false;
 }
 
+void change_playback_mode(int amnt) {
+  if (playback_mode < 3) {
+    playback_mode += amnt;
+  } else {
+    playback_mode = 0;
+  }
+  if (playback_mode == 0) {
+    incrementor = 1;
+  } else if (playback_mode == 2) {
+    incrementor = -1;
+  }
+}
+
 void btn_press(int which) {
   bool btn_down = btn_mode_down || btn_steps_down || btn_swing_down || btn_dur_down;
   if (btn_down) {
@@ -39,16 +52,7 @@ void btn_press(int which) {
             fire_reset();
           }
           if (!btn_steps_down && !btn_swing_down && !btn_dur_down) {
-            if (playback_mode < 3) {
-              playback_mode++;
-            } else {
-              playback_mode = 0;
-            }
-            if (playback_mode == 0) {
-              incrementor = 1;
-            } else if (playback_mode == 2) {
-              incrementor = -1;
-            }
+            change_playback_mode(1);
           }
         break;
         case 1: // steps

@@ -88,27 +88,39 @@ void increment_sequence() {
   for (int i = 0; i < pointers; i++) {
     int this_pointer = pattern_pointer + (steplength * i);
     int this_note = 0;
+    int this_swing = 0;
+    int this_glide = 0;
     bool set_triggers = false;
     if (pattern_on[this_pointer]) {
       this_note = pattern_tone[this_pointer];
+      this_swing = pattern_swing[this_pointer];
+      this_glide = pattern_glide[this_pointer];
       set_triggers = true;
     }
     if (pointers == 1) {
       notes[0] = this_note;
+      swing[0] = this_swing;
+      glide[0] = this_glide;
       triggers[0] = false;
       triggers[1] = set_triggers;
       notes[2] = this_note;
+      swing[2] = this_swing;
+      glide[2] = this_glide;
       triggers[2] = false;
       triggers[3] = set_triggers;
     }
     if (pointers == 2) {
       if (i == 0) {
         notes[0] = this_note;
+        swing[0] = this_swing;
+        glide[0] = this_glide;
         triggers[0] = false;
         triggers[1] = set_triggers;
       }
       if (i == 1) {
         notes[2] = this_note;
+        swing[2] = this_swing;
+        glide[2] = this_glide;
         triggers[2] = false;
         triggers[3] = set_triggers;
       }
@@ -188,7 +200,8 @@ void increment_glide_mode(int amnt) {
 void fire_trigger() {
   if (!paused && !pattern_ended) {
     update_pointer(incrementor);
-    last_clock_time = swinging ? microtime + (global_swing * swing_dur) : microtime;
+    last_clock_time = microtime;
+    swing_delay = swinging ? global_swing * swing_dur : 0;
     if (!pattern_ended) {
       increment_sequence();
     } else {

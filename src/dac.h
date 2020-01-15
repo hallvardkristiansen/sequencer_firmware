@@ -35,11 +35,11 @@ void build_semitone_scale() {
   }
 }
 
-void semitone_to_dac(int dac, int note, int last_note) {
+void semitone_to_dac(int dac, int note, int last_note, int key_glide) {
   uint16_t dac_value = semitones[note];
-  if (global_glide > 0) {
+  if (global_glide > 0 || key_glide > 0) {
     double time_elapsed = microtime - last_clock_time;
-    double time_duration = glide_dur * global_glide;
+    double time_duration = (glide_dur * global_glide) + (glide_dur * key_glide);
     double time = time_elapsed / time_duration;
     if (time < 0.0) {
       dac_value = semitones[last_note];
@@ -63,7 +63,7 @@ void resolve_dacs() {
           set_dac(dacs_single[i], spi_dac_0v);
         }
       } else {
-        semitone_to_dac(i, notes[i], last_notes[i]);
+        semitone_to_dac(i, notes[i], last_notes[i], glide[i]);
       }
     }
   }
