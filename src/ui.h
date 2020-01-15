@@ -63,6 +63,7 @@ void btn_press(int which) {
             paused = !paused;
             pattern_ended = false;
           }
+          menu_steps_active = false;
         break;
         case 2: // swing
         break;
@@ -104,6 +105,7 @@ void enc_rotate(int which) {
     break;
     case 2: // swing
       if (btn_steps_down) {
+        menu_steps_active = true;
         change_pattern_start(enc_swing_mod);
       } else {
         if (keypad_down) {
@@ -119,6 +121,7 @@ void enc_rotate(int which) {
     break;
     case 3: // dur
       if (btn_steps_down) {
+        menu_steps_active = true;
         change_pattern_length(enc_dur_mod);
       } else {
         if (keypad_down) {

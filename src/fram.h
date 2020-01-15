@@ -84,7 +84,7 @@ void clear_state() {
 }
 
 void save_state() {
-  if (perform_save && paused) {
+  if (perform_save) {
     write_fram();
   }
 }
