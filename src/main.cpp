@@ -34,11 +34,11 @@ void setup() {
 }
 
 void loop() {
-  update_timers();
   poll_inputs();
+  update_timers();
+  resolve_dacs();
   poll_ui();
   resolve_interactions();
-  resolve_dacs();
   save_state();
   //serial_print_debug();
 }

@@ -100,6 +100,10 @@ void resolve_interactions() {
   }
 }
 
+bool allow_ui() {
+  return !(triggering || syncing);
+}
+
 void update_timers() {
   millitime = millis();
   microtime = micros();
