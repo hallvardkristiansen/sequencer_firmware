@@ -204,8 +204,9 @@ void fire_trigger() {
     swing_delay = swinging ? global_swing * swing_dur : 0;
     if (!pattern_ended) {
       increment_sequence();
-    } else {
+    } else if (sync_primed) {
       last_sync_time = microtime;
+      sync_primed = false;
     }
   }
 }
@@ -235,4 +236,5 @@ void reset_pointer() {
 void fire_reset() {
   reset_pointer();
   increment_sequence();
+  sync_primed = true;
 }

@@ -89,6 +89,7 @@ bool triggering = true;
 bool reset = false;
 bool pattern_ended = false;
 bool syncing = false;
+bool sync_primed = true;
 bool polling_keys = false;
 bool polling_btns = false;
 bool apply_modifiers = false;
