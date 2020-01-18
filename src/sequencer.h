@@ -238,3 +238,94 @@ void fire_reset() {
   increment_sequence();
   sync_primed = true;
 }
+
+void copy_page() {
+  copy_section[0] = current_page * grid_size;
+  copy_section[1] = grid_size;
+}
+
+void paste_page() {
+  int starting_step = current_page * grid_size;
+  for (int i = 0; i < copy_section[1]; i++) {
+    int paste_step = starting_step + i;
+    int copy_step = copy_section[0] + i;
+    pattern_tone[paste_step] = pattern_tone[copy_step];
+    pattern_swing[paste_step] = pattern_swing[copy_step];
+    pattern_glide[paste_step] = pattern_glide[copy_step];
+    pattern_on[paste_step] = pattern_on[copy_step];
+  }
+  copy_section[1] = 0;
+}
+
+void clear_page() {
+  int starting_step = current_page * grid_size;
+  for (int i = 0; i < grid_size; i++) {
+    int clear_step = starting_step + i;
+    pattern_tone[clear_step] = 0;
+    pattern_swing[clear_step] = 0;
+    pattern_glide[clear_step] = 0;
+    pattern_on[clear_step] = false;
+  }
+}
+
+void insert_spaces() {
+  int starting_step = current_page * grid_size;
+  int shift_steps[4] {0};
+  shift_steps[0] = pattern_tone[starting_step];
+  shift_steps[1] = pattern_swing[starting_step];
+  shift_steps[2] = pattern_glide[starting_step];
+  shift_steps[3] = pattern_on[starting_step] ? 1 : 0;
+  for (int i = 0; i < grid_size; i++) {
+    int this_step = starting_step + i;
+    if (i % 2 != 0) {
+      shift_steps[0] = pattern_tone[this_step];
+      shift_steps[1] = pattern_swing[this_step];
+      shift_steps[2] = pattern_glide[this_step];
+      shift_steps[3] = pattern_on[this_step] ? 1 : 0;
+      pattern_tone[this_step] = 0;
+      pattern_swing[this_step] = 0;
+      pattern_glide[this_step] = 0;
+      pattern_on[this_step] = false;
+    } else {
+      pattern_tone[this_step] = shift_steps[0];
+      pattern_swing[this_step] = shift_steps[1];
+      pattern_glide[this_step] = shift_steps[2];
+      pattern_on[this_step] = (shift_steps[3] == 1);
+    }
+  }
+}
+
+void remove_spaces() {
+  int starting_step = current_page * grid_size;
+  int shift_steps[4] {0};
+  shift_steps[0] = pattern_tone[starting_step];
+  shift_steps[1] = pattern_swing[starting_step];
+  shift_steps[2] = pattern_glide[starting_step];
+  shift_steps[3] = pattern_on[starting_step] ? 1 : 0;
+  for (int i = grid_size; i > 0; i--) {
+    int this_step = starting_step + i;
+    if (i % 2 == 0) {
+      shift_steps[0] = pattern_tone[this_step];
+      shift_steps[1] = pattern_swing[this_step];
+      shift_steps[2] = pattern_glide[this_step];
+      shift_steps[3] = pattern_on[this_step] ? 1 : 0;
+      pattern_tone[this_step] = 0;
+      pattern_swing[this_step] = 0;
+      pattern_glide[this_step] = 0;
+      pattern_on[this_step] = false;
+    } else {
+      pattern_tone[this_step] = shift_steps[0];
+      pattern_swing[this_step] = shift_steps[1];
+      pattern_glide[this_step] = shift_steps[2];
+      pattern_on[this_step] = (shift_steps[3] == 1);
+    }
+  }
+}
+
+int get_swing() {
+  return pattern_swing[last_keypad_down_index] > 0 ? pattern_swing[last_keypad_down_index] : global_swing;
+}
+
+int get_glide() {
+  return pattern_glide[last_keypad_down_index] > 0 ? pattern_glide[last_keypad_down_index] : global_glide;
+}

@@ -67,6 +67,7 @@ int pattern_tone[max_pattern_length] {30};
 int pattern_swing[max_pattern_length] {0};
 int pattern_glide[max_pattern_length] {0};
 bool pattern_on[max_pattern_length] {false};
+int copy_section[2] {0};
 int global_swing = 0;
 int global_glide = 0;
 byte setting_ui[grid_size] {0x00};

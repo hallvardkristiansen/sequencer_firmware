@@ -17,7 +17,7 @@
 #include <utils.h>
 
 void setup() {
-  //Serial.begin(9600);
+  Serial.begin(9600);
 
   setup_pins();
   build_semitone_scale();
@@ -40,5 +40,5 @@ void loop() {
   poll_ui();
   resolve_interactions();
   save_state();
-  //serial_print_debug();
+  serial_print_debug();
 }

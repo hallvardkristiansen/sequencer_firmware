@@ -19,7 +19,7 @@ void prime_btn_hold() {
 }
 
 void all_hold_release() {
-  if (all_btns_pressed && btn_hold_primed) {
+  if (all_btns_pressed) {
     clear_state();
     intro_animation();
   }
@@ -48,30 +48,46 @@ void btn_press(int which) {
       all_hold_release();
       switch (which) {
         case 0: // mode
-          if (btn_steps_down) {
-            fire_reset();
-          }
           if (!btn_steps_down && !btn_swing_down && !btn_dur_down) {
-            change_playback_mode(1);
+            if (copy_section[1] == 0) {
+              copy_page();
+            } else {
+              paste_page();
+            }
+          } else {
+            if (btn_steps_down && !btn_swing_down && !btn_dur_down) {
+              fire_reset();
+            }
+            if (btn_steps_down && btn_swing_down && !btn_dur_down) {
+              clear_page();
+            }
           }
         break;
         case 1: // steps
-          if (btn_mode_down) {
-            fire_reset();
-          }
           if (!menu_steps_active && !btn_mode_down && !btn_swing_down && !btn_dur_down) {
             paused = !paused;
             pattern_ended = false;
           }
+          if (btn_mode_down && !btn_swing_down && !btn_dur_down) {
+            fire_reset();
+          }
+          if (btn_mode_down && btn_swing_down && !btn_dur_down) {
+            clear_page();
+          }
           menu_steps_active = false;
         break;
         case 2: // swing
+          if (!btn_mode_down && !btn_steps_down && !btn_dur_down) {
+            insert_spaces();
+          } else {
+            if (btn_mode_down && btn_steps_down && !btn_dur_down) {
+              clear_page();
+            }
+          }
         break;
         case 3: // dur
-          if (glide_mode + 1 > glide_modes) {
-            glide_mode = 0;
-          } else {
-            glide_mode++;
+          if (!btn_mode_down && !btn_steps_down && !btn_swing_down) {
+            remove_spaces();
           }
         break;
       }
@@ -88,7 +104,7 @@ void btn_press(int which) {
 void enc_rotate(int which) {
   switch (which) {
     case 0: // mode
-      change_pointers_count(enc_mode_mod);
+      change_page(enc_mode_mod);
     break;
     case 1: // steps
       if (keypad_down) {
@@ -151,12 +167,35 @@ void keypad_released(int key_num) {
   menu_semitones_active = false;
   int pattern_index = (grid_size * current_page) + key_num;
 
-  if (menu_steps_active) {
-    pattern_length = grid_size * key_num;
+  if (menu_mode_active) {
+    switch (key_num) {
+      case 0:
+        incrementor = -1;
+        playback_mode = 0;
+      break;
+      case 1:
+        playback_mode = 1;
+      break;
+      case 2:
+        incrementor = 1;
+        playback_mode = 2;
+      break;
+      case 4:
+        pointers = 1;
+      break;
+      case 5:
+        pointers = 2;
+      break;
+      case 6:
+        pointers = 4;
+      break;
+    }
+  } else if (menu_steps_active) {
+    pattern_length = (grid_size * key_num) - pattern_start;
   } else if (menu_swing_active) {
     global_swing = key_num;
   } else if (menu_dur_active) {
-    global_glide = key_num;
+    glide_mode = key_num;
   } else {
     if (!pattern_on[pattern_index]) {
       pattern_on[pattern_index] = true;
@@ -206,9 +245,22 @@ void trellis_keypress_events() {
 
 void refresh_keypad_colours() {
   if (menu_mode_active) {
-    for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      trellis.pixels.setPixelColor(i, 0x119911);
-    }
+    trellis.pixels.setPixelColor(0, 0x991111);
+    trellis.pixels.setPixelColor(1, 0x119911);
+    trellis.pixels.setPixelColor(2, 0x111199);
+    trellis.pixels.setPixelColor(3, 0x000001);
+    trellis.pixels.setPixelColor(4, 0x999911);
+    trellis.pixels.setPixelColor(5, 0x991199);
+    trellis.pixels.setPixelColor(6, 0x119999);
+    trellis.pixels.setPixelColor(7, 0x000001);
+    trellis.pixels.setPixelColor(8, 0x000001);
+    trellis.pixels.setPixelColor(9, 0x000001);
+    trellis.pixels.setPixelColor(10, 0x000001);
+    trellis.pixels.setPixelColor(11, 0x000001);
+    trellis.pixels.setPixelColor(12, 0x000001);
+    trellis.pixels.setPixelColor(13, 0x000001);
+    trellis.pixels.setPixelColor(14, 0x000001);
+    trellis.pixels.setPixelColor(15, 0x000001);
   } else if (menu_steps_active) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
       if (i < (pattern_start + pattern_length) / grid_size && i >= pattern_start / grid_size) {
@@ -218,10 +270,11 @@ void refresh_keypad_colours() {
       }
     }
   } else if (menu_swing_active) {
-    int color_step = floor(global_swing / grid_size);
-    int relative_step = global_swing % grid_size;
+    int swing = get_swing();
+    int color_step = floor(swing / grid_size);
+    int relative_step = swing % grid_size;
 
-    uint32_t active_color = Wheel(color_step * 16);
+    uint32_t active_color = Wheel(color_step * grid_size);
     uint32_t inactive_color = 0x010101;
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
       if (i < relative_step) {
@@ -231,10 +284,11 @@ void refresh_keypad_colours() {
       }
     }
   } else if (menu_dur_active) {
-    int color_step = floor(global_glide / grid_size);
-    int relative_step = global_glide % grid_size;
+    int glide = get_glide();
+    int color_step = floor(glide / grid_size);
+    int relative_step = glide % grid_size;
 
-    uint32_t active_color = Wheel(color_step * 16);
+    uint32_t active_color = Wheel(color_step * grid_size);
     uint32_t inactive_color = 0x010100;
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
       if (i < relative_step) {
@@ -247,7 +301,7 @@ void refresh_keypad_colours() {
     float color_step = floor(pattern_tone[last_keypad_down_index] / grid_size);
     int relative_step = pattern_tone[last_keypad_down_index] % grid_size;
 
-    uint32_t active_color = Wheel(color_step * 16);
+    uint32_t active_color = Wheel(color_step * grid_size);
     uint32_t inactive_color = 0x000001;
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
       if (i < relative_step) {
