@@ -49,7 +49,7 @@ void btn_press(int which) {
       all_hold_release();
       switch (which) {
         case 0: // mode
-          if (!btn_steps_down && !btn_swing_down && !btn_dur_down) {
+          if (!btn_steps_down && !btn_swing_down && !btn_dur_down && !btn_hold_primed) {
             if (copy_section[1] == 0) {
               copy_page();
               Serial.println("Page copied");
@@ -68,12 +68,16 @@ void btn_press(int which) {
           }
         break;
         case 1: // steps
-          if (!menu_steps_active && !btn_mode_down && !btn_swing_down && !btn_dur_down) {
-            paused = !paused;
-            pattern_ended = false;
-          }
-          if (btn_mode_down && !btn_swing_down && !btn_dur_down) {
-            fire_reset();
+          if (copy_section[1] > 0) {
+            fill_active_pattern();
+          } else {
+            if (!menu_steps_active && !btn_mode_down && !btn_swing_down && !btn_dur_down) {
+              paused = !paused;
+              pattern_ended = false;
+            }
+            if (btn_mode_down && !btn_swing_down && !btn_dur_down) {
+              fire_reset();
+            }
           }
           menu_steps_active = false;
         break;
@@ -222,10 +226,10 @@ uint32_t Wheel(byte WheelPos) {
 }
 
 uint32_t keypad_color(int num) {
-  double mult = 250 / 60;
-  double val = (pattern_tone[(current_page * grid_size) + num] * mult) + 5;
+  double redval = pattern_tone[(current_page * grid_size) + num] + 5;
+  double greenval = redval - 40 > 0 ? redval - 40 : 0;
   int blueval = current_page == num ? 2 : 0;
-  uint32_t returnval = trellis.pixels.Color(val, 0, blueval);
+  uint32_t returnval = trellis.pixels.Color(redval, greenval, blueval);
   return returnval;
 }
 
@@ -329,8 +333,9 @@ void refresh_keypad_colours() {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
       int pattern_index = (current_page * grid_size) + i;
       uint32_t active_color = is_pointer(i) ? 0xAAAAAA : keypad_color(i);
-      uint32_t inactive_color = copy_section[1] > 0 ? 0x020001 : 0x000001;
+      uint32_t inactive_color = (i >= (pattern_start / grid_size)) && (i < ((pattern_start + pattern_length) / grid_size)) ? 0x000001 : 0x000000;
       active_color = i == current_page ? 0xAAAAAF : active_color;
+      inactive_color = copy_section[1] > 0 ? 0x020001 : inactive_color;
       inactive_color = i == current_page ? 0x000011 : inactive_color;
       uint32_t trigger_color = i == current_page ? 0x221111 : 0x221100;
       uint32_t pointer_color = i == current_page ? 0x111122 : 0x111111;

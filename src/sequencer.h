@@ -251,6 +251,7 @@ void fire_reset() {
   reset_pointer();
   increment_sequence();
   sync_primed = true;
+  Serial.println("reset triggered");
 }
 
 void change_page(int dir) {
@@ -272,6 +273,19 @@ void paste_page() {
   for (int i = 0; i < copy_section[1]; i++) {
     int paste_step = starting_step + i;
     int copy_step = copy_section[0] + i;
+    pattern_tone[paste_step] = pattern_tone[copy_step];
+    pattern_swing[paste_step] = pattern_swing[copy_step];
+    pattern_glide[paste_step] = pattern_glide[copy_step];
+    pattern_on[paste_step] = pattern_on[copy_step];
+  }
+  copy_section[1] = 0;
+}
+
+void fill_active_pattern() {
+  for (int i = 0; i < pattern_length; i++) {
+    int paste_step = pattern_start + i;
+    int copy_position = i % grid_size;
+    int copy_step = copy_section[0] + copy_position;
     pattern_tone[paste_step] = pattern_tone[copy_step];
     pattern_swing[paste_step] = pattern_swing[copy_step];
     pattern_glide[paste_step] = pattern_glide[copy_step];
@@ -304,61 +318,25 @@ void insert_spaces() {
     orig_glide[i] = pattern_glide[this_step];
     orig_on[i] = pattern_on[this_step];
   }
-  int j = 0;
-  bool insert_blank = false;
+  int j = starting_step;
   for (int i = 0; i < grid_size; i++) {
     if (j < grid_size) {
-      int this_step = starting_step + i + j;
-      if (insert_blank) {
-        pattern_tone[this_step] = 0;
-        pattern_swing[this_step] = 0;
-        pattern_glide[this_step] = 0;
-        pattern_on[this_step] = false;
-        j++;
-        insert_blank = false;
-      } else {
-        pattern_tone[this_step] = orig_tone[i];
-        pattern_swing[this_step] = orig_swing[i];
-        pattern_glide[this_step] = orig_glide[i];
-        pattern_on[this_step] = orig_on[i];
-      }
-      if (orig_on[i]) {
-        insert_blank = true;
-      }
+      pattern_tone[j] = orig_tone[i];
+      pattern_swing[j] = orig_swing[i];
+      pattern_glide[j] = orig_glide[i];
+      pattern_on[j] = orig_on[i];
+      j++;
+      pattern_on[j] = false;
+      j++;
     }
   }
 }
 
 void remove_spaces() {
   int starting_step = current_page * grid_size;
-  int orig_tone[grid_size] {0};
-  int orig_swing[grid_size] {0};
-  int orig_glide[grid_size] {0};
-  bool orig_on[grid_size] {false};
   for (int i = 0; i < grid_size; i++) {
     int this_step = starting_step + i;
-    orig_tone[i] = pattern_tone[this_step];
-    orig_swing[i] = pattern_swing[this_step];
-    orig_glide[i] = pattern_glide[this_step];
-    orig_on[i] = pattern_on[this_step];
-  }
-  int j = 0;
-  for (int i = 0; i < grid_size; i++) {
-    int this_step = starting_step + i;
-    if (i % 2 != 0) {
-      j = i * 2;
-      if (j < grid_size) {
-        pattern_tone[this_step] = orig_tone[j];
-        pattern_swing[this_step] = orig_swing[j];
-        pattern_glide[this_step] = orig_glide[j];
-        pattern_on[this_step] = orig_on[j];
-      } else {
-        pattern_tone[this_step] = 0;
-        pattern_swing[this_step] = 0;
-        pattern_glide[this_step] = 0;
-        pattern_on[this_step] = false;
-      }
-    }
+    pattern_on[this_step] = !pattern_on[this_step];
   }
 }
 
