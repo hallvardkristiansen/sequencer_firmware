@@ -43,6 +43,7 @@ void btn_press(int which) {
   bool btn_down = btn_mode_down || btn_steps_down || btn_swing_down || btn_dur_down;
   if (btn_down) {
     prime_btn_hold();
+    enc_modified = false;
   } else {
     if (!enc_modified) {
       all_hold_release();
@@ -51,15 +52,18 @@ void btn_press(int which) {
           if (!btn_steps_down && !btn_swing_down && !btn_dur_down) {
             if (copy_section[1] == 0) {
               copy_page();
+              Serial.println("Page copied");
             } else {
               paste_page();
+              Serial.println("Page pasted");
             }
           } else {
             if (btn_steps_down && !btn_swing_down && !btn_dur_down) {
               fire_reset();
             }
-            if (btn_steps_down && btn_swing_down && !btn_dur_down) {
+            if (!btn_steps_down && !btn_swing_down && btn_dur_down) {
               clear_page();
+              Serial.println("Page cleared, mode btn triggered");
             }
           }
         break;
@@ -71,23 +75,19 @@ void btn_press(int which) {
           if (btn_mode_down && !btn_swing_down && !btn_dur_down) {
             fire_reset();
           }
-          if (btn_mode_down && btn_swing_down && !btn_dur_down) {
-            clear_page();
-          }
           menu_steps_active = false;
         break;
         case 2: // swing
           if (!btn_mode_down && !btn_steps_down && !btn_dur_down) {
             insert_spaces();
-          } else {
-            if (btn_mode_down && btn_steps_down && !btn_dur_down) {
-              clear_page();
-            }
           }
         break;
         case 3: // dur
           if (!btn_mode_down && !btn_steps_down && !btn_swing_down) {
             remove_spaces();
+          } if (btn_mode_down && !btn_steps_down && !btn_swing_down) {
+            clear_page();
+            Serial.println("Page cleared, dur btn triggered");
           }
         break;
       }
@@ -159,7 +159,6 @@ void keypad_pressed(int key_num) {
   keypads_down[key_num] = true;
   keypad_down = true;
   last_keypad_down_index = (grid_size * current_page) + key_num;
-  prime_btn_hold();
 }
 void keypad_released(int key_num) {
   keypads_down[key_num] = false;
@@ -179,6 +178,9 @@ void keypad_released(int key_num) {
       case 2:
         incrementor = 1;
         playback_mode = 2;
+      break;
+      case 3:
+        trigger_mode = !trigger_mode;
       break;
       case 4:
         pointers = 1;
@@ -222,7 +224,8 @@ uint32_t Wheel(byte WheelPos) {
 uint32_t keypad_color(int num) {
   double mult = 250 / 60;
   double val = (pattern_tone[(current_page * grid_size) + num] * mult) + 5;
-  uint32_t returnval = trellis.pixels.Color(val, 0, 0);
+  int blueval = current_page == num ? 2 : 0;
+  uint32_t returnval = trellis.pixels.Color(val, 0, blueval);
   return returnval;
 }
 
@@ -245,22 +248,34 @@ void trellis_keypress_events() {
 
 void refresh_keypad_colours() {
   if (menu_mode_active) {
-    trellis.pixels.setPixelColor(0, 0x991111);
-    trellis.pixels.setPixelColor(1, 0x119911);
-    trellis.pixels.setPixelColor(2, 0x111199);
-    trellis.pixels.setPixelColor(3, 0x000001);
-    trellis.pixels.setPixelColor(4, 0x999911);
-    trellis.pixels.setPixelColor(5, 0x991199);
-    trellis.pixels.setPixelColor(6, 0x119999);
-    trellis.pixels.setPixelColor(7, 0x000001);
-    trellis.pixels.setPixelColor(8, 0x000001);
-    trellis.pixels.setPixelColor(9, 0x000001);
-    trellis.pixels.setPixelColor(10, 0x000001);
-    trellis.pixels.setPixelColor(11, 0x000001);
-    trellis.pixels.setPixelColor(12, 0x000001);
-    trellis.pixels.setPixelColor(13, 0x000001);
-    trellis.pixels.setPixelColor(14, 0x000001);
-    trellis.pixels.setPixelColor(15, 0x000001);
+    for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
+      switch (i) {
+        case 0:
+          trellis.pixels.setPixelColor(i, 0x991111);
+        break;
+        case 1:
+          trellis.pixels.setPixelColor(i, 0x119911);
+        break;
+        case 2:
+          trellis.pixels.setPixelColor(i, 0x111199);
+        break;
+        case 3:
+          trellis.pixels.setPixelColor(i, 0x555500);
+        break;
+        case 4:
+          trellis.pixels.setPixelColor(i, 0x999911);
+        break;
+        case 5:
+          trellis.pixels.setPixelColor(i, 0x991199);
+        break;
+        case 6:
+          trellis.pixels.setPixelColor(i, 0x119999);
+        break;
+        default:
+          trellis.pixels.setPixelColor(i, 0x000001);
+        break;
+      }
+    }
   } else if (menu_steps_active) {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
       if (i < (pattern_start + pattern_length) / grid_size && i >= pattern_start / grid_size) {
@@ -313,23 +328,30 @@ void refresh_keypad_colours() {
   } else {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
       int pattern_index = (current_page * grid_size) + i;
+      uint32_t active_color = is_pointer(i) ? 0xAAAAAA : keypad_color(i);
+      uint32_t inactive_color = copy_section[1] > 0 ? 0x020001 : 0x000001;
+      active_color = i == current_page ? 0xAAAAAF : active_color;
+      inactive_color = i == current_page ? 0x000011 : inactive_color;
+      uint32_t trigger_color = i == current_page ? 0x221111 : 0x221100;
+      uint32_t pointer_color = i == current_page ? 0x111122 : 0x111111;
+      uint32_t cv_color = keypad_color(i);
       if (pattern_on[pattern_index]) {
         if (keypads_down[i]) {
-          trellis.pixels.setPixelColor(i, keypad_color(i));
+          trellis.pixels.setPixelColor(i, cv_color);
         } else if (is_pointer(i)) {
-          trellis.pixels.setPixelColor(i, 0xAAAAAA);
-        } else if (pointers == 4) {
-          trellis.pixels.setPixelColor(i, 0x111100);
+          trellis.pixels.setPixelColor(i, active_color);
+        } else if (trigger_mode) {
+          trellis.pixels.setPixelColor(i, trigger_color);
         } else {
-          trellis.pixels.setPixelColor(i, keypad_color(i));
+          trellis.pixels.setPixelColor(i, cv_color);
         }
       } else {
         if (keypads_down[i]) {
-          trellis.pixels.setPixelColor(i, keypad_color(i));
+          trellis.pixels.setPixelColor(i, cv_color);
         } else if (is_pointer(i)) {
-          trellis.pixels.setPixelColor(i, 0x111111);
+          trellis.pixels.setPixelColor(i, pointer_color);
         } else {
-          trellis.pixels.setPixelColor(i, 0x000001);
+          trellis.pixels.setPixelColor(i, inactive_color);
         }
       }
     }

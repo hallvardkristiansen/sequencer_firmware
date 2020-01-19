@@ -59,6 +59,7 @@ int pointer = 0;
 int pointers = 1;
 int playback_mode = 0;
 int incrementor = 1;
+bool trigger_mode = false;
 
 int pattern_length = initial_pattern_length;
 int pattern_start = 0;

@@ -98,26 +98,14 @@ void increment_sequence() {
       set_triggers = true;
     }
     if (pointers == 1) {
-      notes[0] = this_note;
-      swing[0] = this_swing;
-      glide[0] = this_glide;
-      triggers[0] = false;
-      triggers[1] = set_triggers;
-      notes[2] = this_note;
-      swing[2] = this_swing;
-      glide[2] = this_glide;
-      triggers[2] = false;
-      triggers[3] = set_triggers;
-    }
-    if (pointers == 2) {
-      if (i == 0) {
+      if (trigger_mode) {
+        triggers[i] = set_triggers;
+      } else {
         notes[0] = this_note;
         swing[0] = this_swing;
         glide[0] = this_glide;
         triggers[0] = false;
         triggers[1] = set_triggers;
-      }
-      if (i == 1) {
         notes[2] = this_note;
         swing[2] = this_swing;
         glide[2] = this_glide;
@@ -125,8 +113,34 @@ void increment_sequence() {
         triggers[3] = set_triggers;
       }
     }
+    if (pointers == 2) {
+      if (trigger_mode) {
+        triggers[i] = set_triggers;
+      } else {
+        if (i == 0) {
+          notes[0] = this_note;
+          swing[0] = this_swing;
+          glide[0] = this_glide;
+          triggers[0] = false;
+          triggers[1] = set_triggers;
+        }
+        if (i == 1) {
+          notes[2] = this_note;
+          swing[2] = this_swing;
+          glide[2] = this_glide;
+          triggers[2] = false;
+          triggers[3] = set_triggers;
+        }
+      }
+    }
     if (pointers == 4) {
-      triggers[i] = set_triggers;
+      if (trigger_mode) {
+        triggers[i] = set_triggers;
+      } else {
+        notes[i] = this_note;
+        swing[i] = this_swing;
+        glide[i] = this_glide;
+      }
     }
   }
   refresh_trellis = true;
@@ -239,6 +253,15 @@ void fire_reset() {
   sync_primed = true;
 }
 
+void change_page(int dir) {
+  int upcoming_index = (current_page + dir) * grid_size;
+  bool page_over_bounds = upcoming_index >= pattern_start + pattern_length;
+  bool page_under_bounds = upcoming_index < pattern_start;
+  if (!page_over_bounds && !page_under_bounds) {
+    current_page += dir;
+  }
+}
+
 void copy_page() {
   copy_section[0] = current_page * grid_size;
   copy_section[1] = grid_size;
@@ -270,54 +293,71 @@ void clear_page() {
 
 void insert_spaces() {
   int starting_step = current_page * grid_size;
-  int shift_steps[4] {0};
-  shift_steps[0] = pattern_tone[starting_step];
-  shift_steps[1] = pattern_swing[starting_step];
-  shift_steps[2] = pattern_glide[starting_step];
-  shift_steps[3] = pattern_on[starting_step] ? 1 : 0;
+  int orig_tone[grid_size] {0};
+  int orig_swing[grid_size] {0};
+  int orig_glide[grid_size] {0};
+  bool orig_on[grid_size] {false};
   for (int i = 0; i < grid_size; i++) {
     int this_step = starting_step + i;
-    if (i % 2 != 0) {
-      shift_steps[0] = pattern_tone[this_step];
-      shift_steps[1] = pattern_swing[this_step];
-      shift_steps[2] = pattern_glide[this_step];
-      shift_steps[3] = pattern_on[this_step] ? 1 : 0;
-      pattern_tone[this_step] = 0;
-      pattern_swing[this_step] = 0;
-      pattern_glide[this_step] = 0;
-      pattern_on[this_step] = false;
-    } else {
-      pattern_tone[this_step] = shift_steps[0];
-      pattern_swing[this_step] = shift_steps[1];
-      pattern_glide[this_step] = shift_steps[2];
-      pattern_on[this_step] = (shift_steps[3] == 1);
+    orig_tone[i] = pattern_tone[this_step];
+    orig_swing[i] = pattern_swing[this_step];
+    orig_glide[i] = pattern_glide[this_step];
+    orig_on[i] = pattern_on[this_step];
+  }
+  int j = 0;
+  bool insert_blank = false;
+  for (int i = 0; i < grid_size; i++) {
+    if (j < grid_size) {
+      int this_step = starting_step + i + j;
+      if (insert_blank) {
+        pattern_tone[this_step] = 0;
+        pattern_swing[this_step] = 0;
+        pattern_glide[this_step] = 0;
+        pattern_on[this_step] = false;
+        j++;
+        insert_blank = false;
+      } else {
+        pattern_tone[this_step] = orig_tone[i];
+        pattern_swing[this_step] = orig_swing[i];
+        pattern_glide[this_step] = orig_glide[i];
+        pattern_on[this_step] = orig_on[i];
+      }
+      if (orig_on[i]) {
+        insert_blank = true;
+      }
     }
   }
 }
 
 void remove_spaces() {
   int starting_step = current_page * grid_size;
-  int shift_steps[4] {0};
-  shift_steps[0] = pattern_tone[starting_step];
-  shift_steps[1] = pattern_swing[starting_step];
-  shift_steps[2] = pattern_glide[starting_step];
-  shift_steps[3] = pattern_on[starting_step] ? 1 : 0;
-  for (int i = grid_size; i > 0; i--) {
+  int orig_tone[grid_size] {0};
+  int orig_swing[grid_size] {0};
+  int orig_glide[grid_size] {0};
+  bool orig_on[grid_size] {false};
+  for (int i = 0; i < grid_size; i++) {
     int this_step = starting_step + i;
-    if (i % 2 == 0) {
-      shift_steps[0] = pattern_tone[this_step];
-      shift_steps[1] = pattern_swing[this_step];
-      shift_steps[2] = pattern_glide[this_step];
-      shift_steps[3] = pattern_on[this_step] ? 1 : 0;
-      pattern_tone[this_step] = 0;
-      pattern_swing[this_step] = 0;
-      pattern_glide[this_step] = 0;
-      pattern_on[this_step] = false;
-    } else {
-      pattern_tone[this_step] = shift_steps[0];
-      pattern_swing[this_step] = shift_steps[1];
-      pattern_glide[this_step] = shift_steps[2];
-      pattern_on[this_step] = (shift_steps[3] == 1);
+    orig_tone[i] = pattern_tone[this_step];
+    orig_swing[i] = pattern_swing[this_step];
+    orig_glide[i] = pattern_glide[this_step];
+    orig_on[i] = pattern_on[this_step];
+  }
+  int j = 0;
+  for (int i = 0; i < grid_size; i++) {
+    int this_step = starting_step + i;
+    if (i % 2 != 0) {
+      j = i * 2;
+      if (j < grid_size) {
+        pattern_tone[this_step] = orig_tone[j];
+        pattern_swing[this_step] = orig_swing[j];
+        pattern_glide[this_step] = orig_glide[j];
+        pattern_on[this_step] = orig_on[j];
+      } else {
+        pattern_tone[this_step] = 0;
+        pattern_swing[this_step] = 0;
+        pattern_glide[this_step] = 0;
+        pattern_on[this_step] = false;
+      }
     }
   }
 }

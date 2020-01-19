@@ -136,7 +136,7 @@ void update_timers() {
   keypad_mode_menu = millitime - last_enc_action < temp_menu_dur;
   menu_mode_active = btn_mode_down && btn_hold_primed;
   menu_steps_active = btn_steps_down && btn_hold_primed;
-  refresh_trellis = ((menu_steps_active || menu_dur_active || menu_swing_active) && !keypad_mode_menu) ? true : refresh_trellis;
+  refresh_trellis = ((menu_mode_active || menu_steps_active || menu_dur_active || menu_swing_active) && !keypad_mode_menu) ? true : refresh_trellis;
   menu_swing_active = keypad_mode_menu ? menu_swing_active : false;
   menu_dur_active = keypad_mode_menu ? menu_dur_active : false;
 }
