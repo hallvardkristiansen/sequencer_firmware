@@ -84,12 +84,14 @@ void increment_sequence() {
   swinging = pointer % 2 == 0;
   for (int i = 0; i < dac_count; i++) {
     last_notes[i] = notes[i];
+    last_swing[i] = swing[i];
+    last_glide[i] = glide[i];
   }
   for (int i = 0; i < pointers; i++) {
     int this_pointer = pattern_pointer + (steplength * i);
-    int this_note = 0;
-    int this_swing = 0;
-    int this_glide = 0;
+    int this_note = last_notes[i];
+    int this_swing = last_swing[i];
+    int this_glide = last_glide[i];
     bool set_triggers = false;
     if (pattern_on[this_pointer]) {
       this_note = pattern_tone[this_pointer];
@@ -302,6 +304,17 @@ void clear_page() {
     pattern_swing[clear_step] = 0;
     pattern_glide[clear_step] = 0;
     pattern_on[clear_step] = false;
+  }
+}
+
+void randomize_page() {
+  int starting_step = current_page * grid_size;
+  srand(time(NULL));
+  for (int i = 0; i < grid_size; i++) {
+    int this_step = starting_step + i;
+    int random_integer = 0 + rand() % 60;
+    pattern_tone[this_step] = random_integer;
+    pattern_on[this_step] = random_integer > 30;
   }
 }
 

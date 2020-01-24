@@ -73,8 +73,9 @@ void resolve_dacs() {
     } else {
       analogWrite(sync_out_pin, int_dac_0v);
     }
-    if (triggering) {
+    if (forward_clock) {
       analogWrite(all_out_pin, int_dac_5v);
+      forward_clock = false;
     } else {
       analogWrite(all_out_pin, int_dac_0v);
     }

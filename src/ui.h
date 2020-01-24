@@ -83,12 +83,12 @@ void btn_press(int which) {
         break;
         case 2: // swing
           if (!btn_mode_down && !btn_steps_down && !btn_dur_down) {
-            insert_spaces();
+            randomize_page();
           }
         break;
         case 3: // dur
           if (!btn_mode_down && !btn_steps_down && !btn_swing_down) {
-            remove_spaces();
+            recording_cv = !recording_cv;
           } if (btn_mode_down && !btn_steps_down && !btn_swing_down) {
             clear_page();
             Serial.println("Page cleared, dur btn triggered");
