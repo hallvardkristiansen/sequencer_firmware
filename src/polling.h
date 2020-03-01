@@ -93,9 +93,9 @@ void poll_cv() {
 }
 
 void poll_inputs() {
-  poll_clock();
   poll_rst();
   poll_cv();
+  poll_clock();
 }
 
 void poll_ui() {
@@ -156,6 +156,10 @@ void update_timers() {
 
   perform_save = (millitime - last_save_time) >= save_hz;
   last_save_time = perform_save ? millitime : last_save_time;
+
+  ui_blink = (millitime - last_blink_time) >= blink_dur;
+  last_blink_time = ui_blink ? millitime : last_blink_time;
+  blinker = ui_blink ? !blinker : blinker;
 
   print_debug = (millitime - last_print_time) >= debug_serial_hz;
   last_print_time = print_debug ? millitime : last_print_time;

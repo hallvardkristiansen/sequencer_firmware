@@ -45,6 +45,28 @@ void change_pattern_start(int amnt) {
   current_page = pattern_start / grid_size;
 }
 
+void reset_pointer() {
+  if (playback_mode == 1) {
+    incrementor = -incrementor;
+    if (incrementor > 0) {
+      pointer = 1;
+      current_page = pattern_start / grid_size;
+    } else {
+      pointer = (grid_size / pointers) - 2;
+      current_page = ((pattern_start + pattern_length) / grid_size) - 1;
+    }
+  } else {
+    if (incrementor > 0) {
+      pointer = 0;
+      current_page = pattern_start / grid_size;
+    } else {
+      pointer = (grid_size / pointers) - 1;
+      current_page = ((pattern_start + pattern_length) / grid_size) - 1;
+    }
+  }
+  pattern_ended = false;
+}
+
 void update_pointer(int val) {
   int max_steps = grid_size / pointers;
   int pointer_min = 0;
@@ -56,14 +78,25 @@ void update_pointer(int val) {
 
   pattern_ended = (pointer_over_bounds && page_over_bounds) || (pointer_under_bounds && page_under_bounds);
 
-  if (pointer_over_bounds && !page_over_bounds) {
-    pointer = pointer_min;
-    current_page++;
-  } else if (pointer_under_bounds && !page_under_bounds) {
-    pointer = pointer_max;
-    current_page--;
-  } else if (!pattern_ended) {
-    pointer += val;
+  if (pattern_ended) {
+    reset_pointer();
+    last_sync_time = microtime;
+    if (!loop_pattern) {
+      paused = true;
+      if (hold_for_sync) {
+        holding_for_sync = true;
+      }
+    }
+  } else {
+    if (pointer_over_bounds && !page_over_bounds) {
+      pointer = pointer_min;
+      current_page++;
+    } else if (pointer_under_bounds && !page_under_bounds) {
+      pointer = pointer_max;
+      current_page--;
+    } else {
+      pointer += val;
+    }
   }
 }
 
@@ -148,6 +181,11 @@ void increment_sequence() {
   refresh_trellis = true;
 }
 
+void increment_octave(int amnt) {
+  if (menu_semitones_octave + amnt < 5 && menu_semitones_octave + amnt >= 0) {
+    menu_semitones_octave += amnt;
+  }
+}
 void increment_note(int amnt) {
   if (pattern_tone[last_keypad_down_index] + amnt >= (int)sizeof(semitones)) {
     pattern_tone[last_keypad_down_index] = (int)sizeof(semitones) -1;
@@ -156,8 +194,6 @@ void increment_note(int amnt) {
   } else {
     pattern_tone[last_keypad_down_index] += amnt;
   }
-  last_clock_time = microtime;
-  increment_sequence();
 }
 void increment_key_swing(int amnt) {
   for (int i = 0; i < (int)sizeof(keypads_down); i++) {
@@ -214,46 +250,21 @@ void increment_glide_mode(int amnt) {
 }
 
 void fire_trigger() {
-  if (!paused && !pattern_ended) {
+  if (!paused && !holding_for_sync) {
     update_pointer(incrementor);
     last_clock_time = microtime;
     swing_delay = swinging ? global_swing * swing_dur : 0;
-    if (!pattern_ended) {
-      increment_sequence();
-    } else if (sync_primed) {
-      last_sync_time = microtime;
-      sync_primed = false;
-    }
+    increment_sequence();
   }
-}
-
-void reset_pointer() {
-  if (playback_mode == 1) {
-    incrementor = -incrementor;
-    if (incrementor > 0) {
-      pointer = 1;
-      current_page = pattern_start / grid_size;
-    } else {
-      pointer = (grid_size / pointers) - 2;
-      current_page = ((pattern_start + pattern_length) / grid_size) - 1;
-    }
-  } else {
-    if (incrementor > 0) {
-      pointer = 0;
-      current_page = pattern_start / grid_size;
-    } else {
-      pointer = (grid_size / pointers) - 1;
-      current_page = ((pattern_start + pattern_length) / grid_size) - 1;
-    }
-  }
-  pattern_ended = false;
 }
 
 void fire_reset() {
-  reset_pointer();
-  increment_sequence();
-  sync_primed = true;
-  Serial.println("reset triggered");
+  if (hold_for_sync && !paused) {
+    holding_for_sync = false;
+  }
+  if (!loop_pattern) {
+    reset_pointer();
+  }
 }
 
 void change_page(int dir) {
@@ -309,47 +320,11 @@ void clear_page() {
 
 void randomize_page() {
   int starting_step = current_page * grid_size;
-  srand(time(NULL));
   for (int i = 0; i < grid_size; i++) {
     int this_step = starting_step + i;
     int random_integer = 0 + rand() % 60;
     pattern_tone[this_step] = random_integer;
     pattern_on[this_step] = random_integer > 30;
-  }
-}
-
-void insert_spaces() {
-  int starting_step = current_page * grid_size;
-  int orig_tone[grid_size] {0};
-  int orig_swing[grid_size] {0};
-  int orig_glide[grid_size] {0};
-  bool orig_on[grid_size] {false};
-  for (int i = 0; i < grid_size; i++) {
-    int this_step = starting_step + i;
-    orig_tone[i] = pattern_tone[this_step];
-    orig_swing[i] = pattern_swing[this_step];
-    orig_glide[i] = pattern_glide[this_step];
-    orig_on[i] = pattern_on[this_step];
-  }
-  int j = starting_step;
-  for (int i = 0; i < grid_size; i++) {
-    if (j < grid_size) {
-      pattern_tone[j] = orig_tone[i];
-      pattern_swing[j] = orig_swing[i];
-      pattern_glide[j] = orig_glide[i];
-      pattern_on[j] = orig_on[i];
-      j++;
-      pattern_on[j] = false;
-      j++;
-    }
-  }
-}
-
-void remove_spaces() {
-  int starting_step = current_page * grid_size;
-  for (int i = 0; i < grid_size; i++) {
-    int this_step = starting_step + i;
-    pattern_on[this_step] = !pattern_on[this_step];
   }
 }
 

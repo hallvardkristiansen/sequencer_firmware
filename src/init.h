@@ -14,6 +14,7 @@ const int key_poll_hz = 61; // millis
 const int save_hz = 10007; // millis
 const int btn_hold_wait = 1000; // millis
 const int temp_menu_dur = 2000; // millis
+const int blink_dur = 250; // millis
 
 const int spi_dac_hz = 191; // micros
 const int int_dac_hz = 997; // micros
@@ -22,6 +23,9 @@ const int trigger_dur = 15000; // micros
 const int sync_dur = 20000; // micros
 const int swing_dur = 1000; // micros
 const int glide_dur = 5000; // micros
+
+const uint32_t major_palette[5] = {0x550000, 0x330033, 0x000055, 0x003333, 0x005500};
+const uint32_t minor_palette[5] = {0x330000, 0x110011, 0x000033, 0x001111, 0x003300};
 
 bool swinging = false;
 int swing_delay = 0;
@@ -49,6 +53,7 @@ long last_sync_time = 0; // micros
 long last_save_time = 0; // millis
 long last_print_time = 0; // millis
 long last_enc_action = 0; // millis
+long last_blink_time = 0; // millis
 
 const int gridx = 4;
 const int gridy = 4;
@@ -62,6 +67,8 @@ int pointers = 1;
 int playback_mode = 0;
 int incrementor = 1;
 bool trigger_mode = false;
+bool hold_for_sync = false;
+bool loop_pattern = true;
 
 int pattern_length = initial_pattern_length;
 int pattern_start = 0;
@@ -121,8 +128,10 @@ int enc_steps_mod = 0;
 int enc_swing_mod = 0;
 int enc_dur_mod = 0;
 
+bool ui_blink = false;
 bool menu_mode_active = false;
 bool menu_steps_active = false;
 bool menu_swing_active = false;
 bool menu_dur_active = false;
 bool menu_semitones_active = false;
+int menu_semitones_octave = 0;
