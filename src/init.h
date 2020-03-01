@@ -12,7 +12,7 @@ const int debug_serial_hz = 2000; // millis
 const int btn_poll_hz = 7; // millis
 const int key_poll_hz = 61; // millis
 const int save_hz = 10007; // millis
-const int btn_hold_wait = 1000; // millis
+const int btn_hold_wait = 500; // millis
 const int temp_menu_dur = 2000; // millis
 const int blink_dur = 250; // millis
 

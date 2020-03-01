@@ -42,24 +42,18 @@ void btn_press(int which) {
           if (!btn_steps_down && !btn_swing_down && !btn_dur_down && !btn_hold_primed) {
             if (copy_section[1] == 0) {
               copy_page();
-              Serial.println("Page copied");
             } else {
               paste_page();
-              Serial.println("Page pasted");
             }
           } else {
             if (btn_steps_down && !btn_swing_down && !btn_dur_down) {
               fire_reset();
             }
-            if (!btn_steps_down && !btn_swing_down && btn_dur_down) {
-              clear_page();
-              Serial.println("Page cleared, mode btn triggered");
-            }
           }
         break;
         case 1: // steps
           if (copy_section[1] > 0) {
-            fill_active_pattern();
+            fill_nth_page(2);
           } else {
             if (!menu_steps_active && !btn_mode_down && !btn_swing_down && !btn_dur_down) {
               if (hold_for_sync) {
@@ -75,16 +69,17 @@ void btn_press(int which) {
           menu_steps_active = false;
         break;
         case 2: // swing
-          if (!btn_mode_down && !btn_steps_down && !btn_dur_down) {
+          if (copy_section[1] > 0) {
+            fill_nth_page(4);
+          } else if (!btn_mode_down && !btn_steps_down && !btn_dur_down) {
             randomize_page();
           }
         break;
         case 3: // dur
-          if (!btn_mode_down && !btn_steps_down && !btn_swing_down) {
-            recording_cv = !recording_cv;
-          } if (btn_mode_down && !btn_steps_down && !btn_swing_down) {
+          if (copy_section[1]) {
             clear_page();
-            Serial.println("Page cleared, dur btn triggered");
+          } else if (!btn_mode_down && !btn_steps_down && !btn_swing_down) {
+            recording_cv = !recording_cv;
           }
         break;
       }
@@ -367,6 +362,7 @@ void refresh_keypad_colours() {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
       int pattern_index = (current_page * grid_size) + i;
       uint32_t active_color = is_pointer(i) ? 0xAAAAAA : keypad_color(i);
+      uint32_t recording_color = 0xff0000;
       uint32_t inactive_color = (i >= (pattern_start / grid_size)) && (i < ((pattern_start + pattern_length) / grid_size)) ? 0x000001 : 0x000000;
       active_color = i == current_page ? 0xAAAAAF : active_color;
       inactive_color = copy_section[1] > 0 ? 0x020001 : inactive_color;
@@ -380,6 +376,8 @@ void refresh_keypad_colours() {
         } else if (is_pointer(i)) {
           if (holding_for_sync && !blinker) {
             trellis.pixels.setPixelColor(i, cv_color);
+          } else if (recording_cv && blinker) {
+            trellis.pixels.setPixelColor(i, recording_color);
           } else {
             trellis.pixels.setPixelColor(i, active_color);
           }
@@ -394,6 +392,8 @@ void refresh_keypad_colours() {
         } else if (is_pointer(i)) {
           if (holding_for_sync && !blinker) {
             trellis.pixels.setPixelColor(i, inactive_color);
+          } else if (recording_cv && blinker) {
+            trellis.pixels.setPixelColor(i, recording_color);
           } else {
             trellis.pixels.setPixelColor(i, pointer_color);
           }

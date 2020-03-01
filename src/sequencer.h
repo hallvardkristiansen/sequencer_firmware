@@ -307,6 +307,22 @@ void fill_active_pattern() {
   copy_section[1] = 0;
 }
 
+void fill_nth_pattern(int page_num) {
+  for (int i = 0; i < pattern_length; i++) {
+    int page = floor(i / grid_size);
+    if (page % page_num == 0) {
+      int paste_step = pattern_start + i;
+      int copy_position = i % grid_size;
+      int copy_step = copy_section[0] + copy_position;
+      pattern_tone[paste_step] = pattern_tone[copy_step];
+      pattern_swing[paste_step] = pattern_swing[copy_step];
+      pattern_glide[paste_step] = pattern_glide[copy_step];
+      pattern_on[paste_step] = pattern_on[copy_step];
+    }
+  }
+  copy_section[1] = 0;
+}
+
 void clear_page() {
   int starting_step = current_page * grid_size;
   for (int i = 0; i < grid_size; i++) {
