@@ -163,8 +163,8 @@ void keypad_pressed(int key_num) {
 
   if (menu_semitones_active) {
     int relative_semitone = (menu_semitones_octave * 12) + key_num;
-    pattern_tone[pattern_index] = relative_semitone;
-    notes = [relative_semitone, relative_semitone, relative_semitone, relative_semitone];
+    pattern_tone[last_keypad_down_index] = relative_semitone;
+    notes[0] = notes[1] = notes[2] = notes[3] = relative_semitone;
     last_clock_time = microtime;
   }
 }

@@ -66,9 +66,6 @@ int pointer = 0;
 int pointers = 1;
 int playback_mode = 0;
 int incrementor = 1;
-bool trigger_mode = false;
-bool hold_for_sync = false;
-bool loop_pattern = true;
 
 int pattern_length = initial_pattern_length;
 int pattern_start = 0;
@@ -104,12 +101,17 @@ bool reset = false;
 bool pattern_ended = false;
 bool syncing = false;
 bool sync_primed = true;
+bool holding_for_sync = false;
+bool hold_for_sync = false;
+bool loop_pattern = true;
 bool polling_keys = false;
 bool polling_btns = false;
 bool apply_modifiers = false;
 bool spi_busy = false;
 bool refresh_trellis = true;
 bool perform_save = false;
+bool blinker = false;
+bool trigger_mode = false;
 
 bool btn_mode_state = false;
 bool btn_steps_state = false;
