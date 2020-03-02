@@ -33,6 +33,7 @@ const int io_swing_a_pin = 7;
 void setup_pins() {
   pinMode(clock_pin, INPUT_PULLUP);
   pinMode(rst_pin, INPUT_PULLUP);
+  pinMode(sync_out_pin, OUTPUT);
   pinMode(dac_cs_pin, OUTPUT);
   pinMode(fram_cs_pin, OUTPUT);
   pinMode(ioexp_int_pin, INPUT_PULLUP);

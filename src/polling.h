@@ -32,10 +32,6 @@ void poll_clock() {
   if (!digitalRead(clock_pin) && !triggered){
     triggered = true;
     fire_trigger();
-    forward_clock = true;
-    if (recording_cv) {
-      sample_cv = true;
-    }
   } else if (digitalRead(clock_pin) && triggered) {
     triggered = false;
   }
