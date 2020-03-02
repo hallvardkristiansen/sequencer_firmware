@@ -17,7 +17,7 @@
 #include <utils.h>
 
 void setup() {
-  Serial.begin(9600);
+  //Serial.begin(9600);
 
   setup_pins();
   build_semitone_scale();
@@ -27,6 +27,8 @@ void setup() {
   initialise_dac();
 
   Wire.begin();
+  Wire.setClock(i2c_hz);
+
   initialise_mcp();
   initialise_trellis();
 
@@ -40,5 +42,6 @@ void loop() {
   poll_ui();
   resolve_interactions();
   save_state();
-  serial_print_debug();
+  refresh_keypad();
+  //serial_print_debug();
 }

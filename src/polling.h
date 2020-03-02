@@ -15,9 +15,12 @@ void poll_encoders() {
 
 void poll_keypad() {
   if (!digitalRead(trellis_int_pin)) {
-    trellis.read();
+    trellis.read(false);
     refresh_trellis = true;
   }
+}
+
+void refresh_keypad() {
   if (refresh_trellis && polling_keys) {
     refresh_keypad_colours();
     trellis.pixels.show();
@@ -157,10 +160,6 @@ void update_timers() {
   perform_save = (millitime - last_save_time) >= save_hz;
   last_save_time = perform_save ? millitime : last_save_time;
 
-  ui_blink = (millitime - last_blink_time) >= blink_dur;
-  last_blink_time = ui_blink ? millitime : last_blink_time;
-  blinker = ui_blink ? !blinker : blinker;
-
   print_debug = (millitime - last_print_time) >= debug_serial_hz;
   last_print_time = print_debug ? millitime : last_print_time;
 
@@ -180,6 +179,6 @@ void update_timers() {
   keypad_mode_menu = millitime - last_enc_action < temp_menu_dur;
   menu_mode_active = btn_mode_down && btn_hold_primed;
   menu_steps_active = btn_steps_down && btn_hold_primed;
-  menu_swing_active = keypad_mode_menu ? menu_swing_active : false;
-  menu_dur_active = keypad_mode_menu ? menu_dur_active : false;
+  menu_swing_active = btn_swing_down && btn_hold_primed;
+  menu_dur_active = btn_dur_down && btn_hold_primed;
 }

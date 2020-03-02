@@ -8,7 +8,7 @@ void write_fram() {
   SPI.beginTransaction(spi_settings);
   SPI.transfer(B00000110); // write enable
   SPI.transfer(B00000010); // begin write
-  SPI.transfer(0x00); // address
+  SPI.transfer(0x10); // address
   SPI.transfer(0x00); // address
   SPI.transfer(0x00); // address
   for (int i = 0; i < max_pattern_length; i++) {
@@ -39,7 +39,7 @@ void read_fram() {
   digitalWrite(fram_cs_pin, LOW);
   SPI.beginTransaction(spi_settings);
   SPI.transfer(B00000011); // begin read
-  SPI.transfer(0x00); // address
+  SPI.transfer(0x10); // address
   SPI.transfer(0x00); // address
   SPI.transfer(0x00); // address
   for (int i = 0; i < max_pattern_length; i++) {
@@ -87,7 +87,7 @@ void clear_state() {
 }
 
 void save_state() {
-  if (perform_save && paused) {
+  if (perform_save) {
     write_fram();
   }
 }

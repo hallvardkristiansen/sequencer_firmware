@@ -250,12 +250,14 @@ void increment_glide_mode(int amnt) {
 }
 
 void fire_trigger() {
+  blinker = !blinker;
   if (!paused && !holding_for_sync) {
     update_pointer(incrementor);
     last_clock_time = microtime;
     swing_delay = swinging ? global_swing * swing_dur : 0;
     increment_sequence();
   }
+  refresh_trellis = true;
 }
 
 void fire_reset() {
@@ -307,9 +309,9 @@ void fill_active_pattern() {
   copy_section[1] = 0;
 }
 
-void fill_nth_pattern(int page_num) {
-  for (int i = 0; i < pattern_length; i++) {
-    int page = floor(i / grid_size);
+void fill_nth_page(int page_num) {
+  int page = current_page;
+  for (int i = (current_page * grid_size) - 1; i < pattern_length; i++) {
     if (page % page_num == 0) {
       int paste_step = pattern_start + i;
       int copy_position = i % grid_size;
@@ -318,6 +320,9 @@ void fill_nth_pattern(int page_num) {
       pattern_swing[paste_step] = pattern_swing[copy_step];
       pattern_glide[paste_step] = pattern_glide[copy_step];
       pattern_on[paste_step] = pattern_on[copy_step];
+    }
+    if (i % grid_size == 0) {
+      page++;
     }
   }
   copy_section[1] = 0;

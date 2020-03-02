@@ -2,6 +2,7 @@ Adafruit_NeoTrellis trellis;
 int io_expander_addr, keypad_addr;
 
 SPISettings spi_settings(24000000, MSBFIRST, SPI_MODE0);
+const int i2c_hz = 400000;
 const uint16_t spi_dac_0v = 0xa100;
 const uint16_t spi_dac_5v = 0x1e00;
 const uint16_t int_dac_0v = 0x076c;
@@ -14,7 +15,6 @@ const int key_poll_hz = 61; // millis
 const int save_hz = 10007; // millis
 const int btn_hold_wait = 500; // millis
 const int temp_menu_dur = 2000; // millis
-const int blink_dur = 250; // millis
 
 const int spi_dac_hz = 191; // micros
 const int int_dac_hz = 997; // micros
@@ -25,7 +25,7 @@ const int swing_dur = 1000; // micros
 const int glide_dur = 5000; // micros
 
 const uint32_t major_palette[5] = {0x550000, 0x330033, 0x000055, 0x003333, 0x005500};
-const uint32_t minor_palette[5] = {0x330000, 0x110011, 0x000033, 0x001111, 0x003300};
+const uint32_t minor_palette[5] = {0x150000, 0x050005, 0x000015, 0x000505, 0x001500};
 
 bool swinging = false;
 int swing_delay = 0;
@@ -53,7 +53,6 @@ long last_sync_time = 0; // micros
 long last_save_time = 0; // millis
 long last_print_time = 0; // millis
 long last_enc_action = 0; // millis
-long last_blink_time = 0; // millis
 
 const int gridx = 4;
 const int gridy = 4;
@@ -90,6 +89,7 @@ bool update_int_dacs = true;
 bool keypad_down = false;
 bool keypads_down[grid_size] {false};
 int last_keypad_down_index = 0;
+int target_keypad_index = 0;
 uint16_t semitones[60];
 
 bool print_debug = false;
@@ -109,6 +109,7 @@ bool polling_btns = false;
 bool apply_modifiers = false;
 bool spi_busy = false;
 bool refresh_trellis = true;
+bool prime_keypad_refresh = false;
 bool perform_save = false;
 bool blinker = false;
 bool trigger_mode = false;
@@ -130,7 +131,6 @@ int enc_steps_mod = 0;
 int enc_swing_mod = 0;
 int enc_dur_mod = 0;
 
-bool ui_blink = false;
 bool menu_mode_active = false;
 bool menu_steps_active = false;
 bool menu_swing_active = false;

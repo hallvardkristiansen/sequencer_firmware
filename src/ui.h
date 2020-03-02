@@ -57,10 +57,11 @@ void btn_press(int which) {
           } else {
             if (!menu_steps_active && !btn_mode_down && !btn_swing_down && !btn_dur_down) {
               if (hold_for_sync) {
-                holding_for_sync = true;
+                holding_for_sync = !holding_for_sync;
+                paused = false;
+              } else {
+                paused = !paused;
               }
-              paused = !paused;
-              pattern_ended = false;
             }
             if (btn_mode_down && !btn_swing_down && !btn_dur_down) {
               fire_reset();
@@ -154,12 +155,41 @@ void keypad_pressed(int key_num) {
   keypads_down[key_num] = true;
   keypad_down = true;
   last_keypad_down_index = (grid_size * current_page) + key_num;
-  prime_btn_hold();
+  if (!btn_mode_down && !btn_steps_down && !btn_swing_down && !btn_dur_down) {
+    prime_btn_hold();
+  }
 
   if (menu_semitones_active) {
     int relative_semitone = (menu_semitones_octave * 12) + key_num;
-    pattern_tone[last_keypad_down_index] = relative_semitone;
-    notes[0] = notes[1] = notes[2] = notes[3] = relative_semitone;
+    pattern_tone[target_keypad_index] = relative_semitone;
+    if (trigger_mode) {
+      for(int i=0; i<gridy; i++){
+        triggers[i] = true;
+      }
+    } else {
+      if (pointers == 1) {
+        notes[0] = notes[2] = relative_semitone;
+        triggers[0] = triggers[2] = false;
+        triggers[1] = triggers[3] = true;
+      } else if (pointers == 2) {
+        triggers[0] = triggers[2] = false;
+        if (target_keypad_index % grid_size < grid_size / 2) {
+          notes[0] = relative_semitone;
+          triggers[1] = true;
+          triggers[3] = false;
+        } else {
+          notes[2] = relative_semitone;
+          triggers[1] = false;
+          triggers[3] = true;
+        }
+      } else if (pointers == 4) {
+        int target_row_num = floor(target_keypad_index % grid_size / gridx);
+        notes[target_row_num] = relative_semitone;
+        for(int i=0; i<gridy; i++){
+          triggers[i] = false;
+        }
+      }
+    }
     last_clock_time = microtime;
   }
 }
@@ -168,63 +198,73 @@ void keypad_released(int key_num) {
   keypad_down = false;
   int pattern_index = (grid_size * current_page) + key_num;
 
-  if (btn_hold_primed) {
-    menu_semitones_active = !menu_semitones_active;
-    menu_semitones_octave = floor(pattern_tone[pattern_index] / 12);
-    if (menu_semitones_active) {
+  if (btn_hold_primed && !btn_mode_down && !btn_steps_down && !btn_swing_down && !btn_dur_down) {
+    if (!menu_semitones_active) {
+      target_keypad_index = pattern_index;
+      menu_semitones_active = true;
       menu_dur_active = false;
       menu_mode_active = false;
       menu_steps_active = false;
       menu_swing_active = false;
+    } else {
+      menu_semitones_active = false;
     }
-  }
-
-  if (menu_mode_active) {
-    switch (key_num) {
-      case 0: // Play mode reverse
-        incrementor = -1;
-        playback_mode = 0;
-      break;
-      case 1: // Play mode bounce
-        playback_mode = 1;
-      break;
-      case 2: // Play mode forward
-        incrementor = 1;
-        playback_mode = 2;
-      break;
-      case 3: // Toggle trigger mode
-        trigger_mode = !trigger_mode;
-      break;
-      case 4: // Pointer count 1
-        pointers = 1;
-      break;
-      case 5: // Pointer count 2
-        pointers = 2;
-      break;
-      case 6: // Pointer count 4
-        pointers = 4;
-      break;
-      case 8: // Toggle wait for sync mode
-        hold_for_sync = !hold_for_sync;
-      break;
-      case 9: // Toggle loop pattern
-        loop_pattern = !loop_pattern;
-      break;
-    }
-  } else if (menu_steps_active) {
-    pattern_length = (grid_size * key_num) - pattern_start;
-  } else if (menu_swing_active) {
-    global_swing = key_num;
-  } else if (menu_dur_active) {
-    glide_mode = key_num;
+    menu_semitones_octave = floor(pattern_tone[target_keypad_index] / 12);
   } else {
-    if (!pattern_on[pattern_index]) {
-      pattern_on[pattern_index] = true;
-    } else if (!enc_modified && pattern_on[pattern_index]) {
-      pattern_on[pattern_index] = false;
+    if (menu_semitones_active) {
+      // do nothing for now
+    } else if (menu_mode_active) {
+      switch (key_num) {
+        case 0: // Play mode reverse
+          incrementor = -1;
+          playback_mode = 0;
+        break;
+        case 1: // Play mode bounce
+          playback_mode = 1;
+        break;
+        case 2: // Play mode forward
+          incrementor = 1;
+          playback_mode = 2;
+        break;
+        case 3: // Toggle trigger mode
+          trigger_mode = !trigger_mode;
+        break;
+        case 4: // Pointer count 1
+          pointers = 1;
+        break;
+        case 5: // Pointer count 2
+          pointers = 2;
+        break;
+        case 6: // Pointer count 4
+          pointers = 4;
+        break;
+        case 8: // Toggle wait for sync mode
+          if (hold_for_sync) {
+            hold_for_sync = false;
+            holding_for_sync = false;
+          } else {
+            hold_for_sync = true;
+            holding_for_sync = paused;
+          }
+        break;
+        case 9: // Toggle loop pattern
+          loop_pattern = !loop_pattern;
+        break;
+      }
+    } else if (menu_steps_active) {
+      pattern_length = (grid_size * key_num) - pattern_start;
+    } else if (menu_swing_active) {
+      global_swing = key_num;
+    } else if (menu_dur_active) {
+      glide_mode = key_num;
+    } else {
+      if (!pattern_on[pattern_index]) {
+        pattern_on[pattern_index] = true;
+      } else if (!enc_modified && pattern_on[pattern_index]) {
+        pattern_on[pattern_index] = false;
+      }
     }
   }
-
   enc_modified = false;
 }
 
@@ -272,31 +312,31 @@ void refresh_keypad_colours() {
       uint32_t pixelcolor = 0x000001;
       switch (i) {
         case 0:  // Reverse play direction
-          pixelcolor = (playback_mode == 0) ? 0x991111 : 0x890101;
+          pixelcolor = (playback_mode == 0) ? 0x991111 : 0x690101;
         break;
         case 1:  // Bounce play directions
-          pixelcolor = (playback_mode == 1) ? 0x119911 : 0x018901;
+          pixelcolor = (playback_mode == 1) ? 0x119911 : 0x016901;
         break;
         case 2:  // Forward play direction
-          pixelcolor = (playback_mode == 2) ? 0x111199 : 0x010189;
+          pixelcolor = (playback_mode == 2) ? 0x111199 : 0x010169;
         break;
         case 3:  // Toggle triggers only mode
-          pixelcolor = trigger_mode ? 0x555500 : 0x454500;
+          pixelcolor = trigger_mode ? 0x555500 : 0x252500;
         break;
         case 4:  // One play head
-          pixelcolor = (pointers == 1) ? 0x999911 : 0x898901;
+          pixelcolor = (pointers == 1) ? 0x999911 : 0x696901;
         break;
         case 5:  // Two play heads
-          pixelcolor = (pointers == 2) ? 0x991199 : 0x890189;
+          pixelcolor = (pointers == 2) ? 0x991199 : 0x690169;
         break;
         case 6:  // Four play heads
-          pixelcolor = (pointers == 4) ? 0x119999 : 0x018989;
+          pixelcolor = (pointers == 4) ? 0x119999 : 0x016969;
         break;
         case 8: // Toggle wait for sync mode
-          pixelcolor = hold_for_sync ? 0x339933 : 0x238923;
+          pixelcolor = hold_for_sync ? 0x339933 : 0x135913;
         break;
         case 9: // Toggle loop pattern
-          pixelcolor = loop_pattern ? 0x225566 : 0x124556;
+          pixelcolor = loop_pattern ? 0x225566 : 0x021526;
         break;
       }
       trellis.pixels.setPixelColor(i, pixelcolor);
@@ -338,21 +378,20 @@ void refresh_keypad_colours() {
       }
     }
   } else if (menu_semitones_active) {
-    int octave = floor(pattern_tone[last_keypad_down_index] / 12);
     uint32_t inactive_color = 0x000001;
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
       if (i < 12) { // Semitones in top three rows of keypad
         int relative_semitone = (menu_semitones_octave * 12) + i;
-        if (pattern_tone[last_keypad_down_index] == relative_semitone) {
+        if (pattern_tone[target_keypad_index] == relative_semitone) {
           trellis.pixels.setPixelColor(i, keypad_color(i));
         } else if (i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11) {
-          trellis.pixels.setPixelColor(i, major_palette[octave]);
+          trellis.pixels.setPixelColor(i, major_palette[menu_semitones_octave]);
         } else {
-          trellis.pixels.setPixelColor(i, minor_palette[octave]);
+          trellis.pixels.setPixelColor(i, minor_palette[menu_semitones_octave]);
         }
       } else { // Octaves in bottom row of keypad
-        if (octave > 0 && (i - 11) == octave) {
-          trellis.pixels.setPixelColor(i, major_palette[octave]);
+        if (menu_semitones_octave > 0 && (i - 11) == menu_semitones_octave) {
+          trellis.pixels.setPixelColor(i, major_palette[menu_semitones_octave]);
         } else {
           trellis.pixels.setPixelColor(i, inactive_color);
         }
@@ -375,7 +414,7 @@ void refresh_keypad_colours() {
           trellis.pixels.setPixelColor(i, cv_color);
         } else if (is_pointer(i)) {
           if (holding_for_sync && !blinker) {
-            trellis.pixels.setPixelColor(i, cv_color);
+            trellis.pixels.setPixelColor(i, (trigger_mode ? trigger_color : cv_color));
           } else if (recording_cv && blinker) {
             trellis.pixels.setPixelColor(i, recording_color);
           } else {
