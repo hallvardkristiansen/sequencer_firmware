@@ -280,7 +280,6 @@ void fire_reset() {
 
 void fire_trigger() {
   blinker = !blinker;
-  clock_interval = microtime - last_clock_time;
   last_clock_time = microtime;
   if (is_playing()) {
     swing_delay = swinging ? global_swing * swing_dur : 0;

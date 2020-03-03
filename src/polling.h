@@ -34,11 +34,14 @@ void refresh_keypad() {
 }
 
 void poll_clock() {
-  if (!digitalRead(clock_pin) && !triggered){
-    triggered = true;
-    fire_trigger();
-  } else if (digitalRead(clock_pin) && triggered) {
-    triggered = false;
+  if (!self_clock) {
+    if (!digitalRead(clock_pin) && !triggered){
+      triggered = true;
+      clock_interval = microtime - last_clock_time;
+      fire_trigger();
+    } else if (digitalRead(clock_pin) && triggered) {
+      triggered = false;
+    }
   }
 }
 
@@ -147,13 +150,13 @@ void resolve_interactions() {
 }
 
 void auto_clocking() {
-  if (self_clock) {
-    last_clock_time = (microtime >= last_clock_time + clock_interval) ? microtime : last_clock_time;
+  if (self_clock && microtime >= (last_clock_time + clock_interval)) {
+    last_clock_time = microtime;
+    fire_trigger();
   }
 }
 
 bool should_trigger() {
-  auto_clocking();
   return (is_playing() && microtime >= (last_clock_time + swing_delay) && (microtime - (last_clock_time + swing_delay)) < trigger_dur);
 }
 
@@ -184,6 +187,7 @@ void update_timers() {
   adc_poll = (microtime - last_int_adc_update) >= int_adc_hz;
   last_int_adc_update = adc_poll ? microtime : last_int_adc_update;
 
+  auto_clocking();
   triggering = should_trigger();
   forward_clock = microtime >= last_clock_time && microtime - last_clock_time < trigger_dur;
   syncing = (microtime - last_sync_time) < sync_dur;
