@@ -250,6 +250,9 @@ void keypad_released(int key_num) {
         case 9: // Toggle loop pattern
           loop_pattern = !loop_pattern;
         break;
+        case 10: // Toggle internal clock
+          self_clock = !self_clock;
+        break;
       }
     } else if (menu_steps_active) {
       pattern_length = (grid_size * key_num) - pattern_start;
@@ -337,6 +340,9 @@ void refresh_keypad_colours() {
         break;
         case 9: // Toggle loop pattern
           pixelcolor = loop_pattern ? 0x225566 : 0x021526;
+        break;
+        case 10: // Toggle auto clocking
+          pixelcolor = self_clock ? 0x123566 : 0x020546;
         break;
       }
       trellis.pixels.setPixelColor(i, pixelcolor);

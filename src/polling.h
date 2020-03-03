@@ -146,7 +146,14 @@ void resolve_interactions() {
   }
 }
 
+void auto_clocking() {
+  if (self_clock) {
+    last_clock_time = (microtime >= last_clock_time + clock_interval) ? microtime : last_clock_time;
+  }
+}
+
 bool should_trigger() {
+  auto_clocking();
   return (is_playing() && microtime >= (last_clock_time + swing_delay) && (microtime - (last_clock_time + swing_delay)) < trigger_dur);
 }
 

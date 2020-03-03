@@ -8,9 +8,7 @@ void pause() {
 
 void fire_sync() {
   last_sync_time = microtime;
-  if (!loop_pattern) {
-    pause();
-  }
+  sync_primed = false;
 }
 
 void change_pointers_count(int dir) {
@@ -85,6 +83,7 @@ void reset_pointer() {
     }
   }
   pattern_ended = false;
+  sync_primed = true;
 }
 
 void update_pointer(int val) {
@@ -100,7 +99,9 @@ void update_pointer(int val) {
 
   if (pattern_ended && is_playing()) {
     reset_pointer();
-    fire_sync();
+    if (!loop_pattern) {
+      pause();
+    }
   } else {
     if (pointer_over_bounds && !page_over_bounds) {
       pointer = pointer_min;
@@ -109,6 +110,10 @@ void update_pointer(int val) {
       pointer = pointer_max;
       current_page--;
     } else {
+      if ((pointer == pointer_min && sync_primed) || (pointer == pointer_max && sync_primed)) {
+        fire_sync();
+      }
+
       pointer += val;
     }
   }
@@ -263,28 +268,29 @@ void increment_glide_mode(int amnt) {
   }
 }
 
-void fire_trigger() {
-  blinker = !blinker;
-  clock_interval = microtime - last_clock_time;
-  last_clock_time = microtime;
-  if (is_playing()) {
-    update_pointer(incrementor);
-    swing_delay = swinging ? global_swing * swing_dur : 0;
-    increment_sequence();
-    if (recording_cv) {
-      sample_cv = true;
-    }
-  }
-  refresh_trellis = true;
-}
-
 void fire_reset() {
   if (!loop_pattern) {
     reset_pointer();
   }
   if (hold_for_sync) {
     holding_for_sync = false;
+    paused = false;
   }
+}
+
+void fire_trigger() {
+  blinker = !blinker;
+  clock_interval = microtime - last_clock_time;
+  last_clock_time = microtime;
+  if (is_playing()) {
+    swing_delay = swinging ? global_swing * swing_dur : 0;
+    increment_sequence();
+    update_pointer(incrementor);
+    if (recording_cv) {
+      sample_cv = true;
+    }
+  }
+  refresh_trellis = true;
 }
 
 void change_page(int dir) {
