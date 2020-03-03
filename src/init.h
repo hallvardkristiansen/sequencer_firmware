@@ -9,23 +9,35 @@ const uint16_t int_dac_0v = 0x076c;
 const uint16_t int_dac_5v = 0x00c8;
 const uint16_t int_dac_range = 0x0fa0;
 
-const int debug_serial_hz = 2000; // millis
-const int btn_poll_hz = 7; // millis
-const int key_poll_hz = 61; // millis
-const int save_hz = 10007; // millis
-const int btn_hold_wait = 500; // millis
-const int temp_menu_dur = 2000; // millis
-
-const int spi_dac_hz = 191; // micros
-const int int_dac_hz = 997; // micros
-const int int_adc_hz = 1493; // micros
-const int trigger_dur = 15000; // micros
-const int sync_dur = 20000; // micros
-const int swing_dur = 1000; // micros
-const int glide_dur = 5000; // micros
-
 const uint32_t major_palette[5] = {0x550000, 0x330033, 0x000055, 0x003333, 0x005500};
 const uint32_t minor_palette[5] = {0x150000, 0x050005, 0x000015, 0x000505, 0x001500};
+
+const unsigned int spi_dac_hz = 150; // micros
+const unsigned int int_dac_hz = 150;
+const unsigned int int_adc_hz = 1500;
+const unsigned int trigger_dur = 1000;
+const unsigned int sync_dur = 1000;
+const unsigned int swing_dur = 1000;
+const unsigned int glide_dur = 5000;
+
+const unsigned int debug_serial_hz = 2000000;
+const unsigned int btn_poll_hz = 10000;
+const unsigned int save_hz = 10000000;
+const unsigned int btn_hold_wait = 500000;
+const unsigned int temp_menu_dur = 2000000;
+
+unsigned long microtime = 0;
+unsigned long last_btn_polltime = 0;
+unsigned long last_btn_press = 0;
+unsigned long last_int_dac_update = 0;
+unsigned long last_int_adc_update = 0;
+unsigned long last_spi_dac_update = 0;
+unsigned long last_clock_time = 0;
+unsigned long clock_interval = 1000000;
+unsigned long last_sync_time = 0;
+unsigned long last_save_time = 0;
+unsigned long last_print_time = 0;
+unsigned long last_enc_action = 0;
 
 bool swinging = false;
 int swing_delay = 0;
@@ -40,28 +52,12 @@ int cv_steps = 0;
 int cv_swing = 0;
 int cv_dur = 0;
 
-long millitime = 0; // millis
-long microtime = 0; // micros
-long trellis_delay = 0; // micros
-long last_key_polltime = 0; // millis
-long last_btn_polltime = 0; // millis
-long last_btn_press = 0; // millis
-long last_int_dac_update = 0; // micros
-long last_int_adc_update = 0; // micros
-long last_spi_dac_update = 0; // micros
-long last_clock_time = 0; // micros
-long last_sync_time = 0; // micros
-long last_save_time = 0; // millis
-long last_print_time = 0; // millis
-long last_enc_action = 0; // millis
-
 const int gridx = 4;
 const int gridy = 4;
 const int grid_size = 16;
 const int initial_pattern_length = 32;
 const int max_pattern_length = 2048;
 const int dac_count = 4;
-const int trellis_led_delay = 30; // microsecond delay per LED
 int current_page = 0;
 int pointer = 0;
 int pointers = 1;
@@ -106,7 +102,7 @@ bool sync_primed = true;
 bool holding_for_sync = false;
 bool hold_for_sync = false;
 bool loop_pattern = true;
-bool polling_keys = false;
+bool refresh_keys = false;
 bool polling_btns = false;
 bool apply_modifiers = false;
 bool spi_busy = false;

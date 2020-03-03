@@ -14,7 +14,7 @@ void intro_animation() {
 }
 
 void prime_btn_hold() {
-  last_btn_press = millitime;
+  last_btn_press = microtime;
 }
 
 void change_playback_mode(int amnt) {
@@ -123,7 +123,7 @@ void enc_rotate(int which) {
         if (keypad_down) {
           increment_key_swing(enc_swing_mod);
         } else {
-          last_enc_action = millitime;
+          last_enc_action = microtime;
           menu_swing_active = true;
           menu_semitones_active = false;
           menu_dur_active = false;
@@ -139,7 +139,7 @@ void enc_rotate(int which) {
         if (keypad_down) {
           increment_key_glide(enc_dur_mod);
         } else {
-          last_enc_action = millitime;
+          last_enc_action = microtime;
           menu_dur_active = true;
           menu_swing_active = false;
           menu_semitones_active = false;

@@ -87,7 +87,7 @@ void clear_state() {
 }
 
 void save_state() {
-  if (perform_save) {
+  if (perform_save && !paused && !holding_for_sync) {
     write_fram();
   }
 }

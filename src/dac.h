@@ -69,15 +69,14 @@ void resolve_dacs() {
   }
   if (update_int_dacs) {
     if (syncing) {
-      digitalWrite(sync_out_pin, LOW);
+      analogWrite(sync_out_pin, int_dac_5v);
     } else {
-      digitalWrite(sync_out_pin, HIGH);
+      analogWrite(sync_out_pin, int_dac_0v);
     }
     if (forward_clock) {
-      digitalWrite(all_out_pin, LOW);
-      forward_clock = false;
+      analogWrite(all_out_pin, int_dac_5v);
     } else {
-      digitalWrite(all_out_pin, HIGH);
+      analogWrite(all_out_pin, int_dac_0v);
     }
   }
 }

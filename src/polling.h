@@ -1,3 +1,8 @@
+bool allow_ui() {
+  bool hyperspeed = clock_interval < 15000;
+  return !(triggering || syncing || hyperspeed);
+}
+
 void poll_btns() {
   if (polling_btns) {
     btn_mode_state = !digitalRead(btn_mode_pin);
@@ -20,17 +25,10 @@ void poll_keypad() {
   }
 }
 
-// Add about 30 microseconds per LED each time the trellis.show() function
-// runs in order to correct drift due to it disabling interrupts
-void add_delay() {
-  trellis_delay += trellis_led_delay * grid_size;
-}
-
 void refresh_keypad() {
-  if (refresh_trellis && polling_keys) {
+  if (refresh_trellis && allow_ui()) {
     refresh_keypad_colours();
     trellis.pixels.show();
-    add_delay();
     refresh_trellis = false;
   }
 }
@@ -105,9 +103,11 @@ void poll_inputs() {
 }
 
 void poll_ui() {
-  poll_btns();
-  poll_encoders();
-  poll_keypad();
+  if (allow_ui()) {
+    poll_btns();
+    poll_encoders();
+    poll_keypad();
+  }
 }
 
 void resolve_interactions() {
@@ -146,31 +146,27 @@ void resolve_interactions() {
   }
 }
 
-bool allow_ui() {
-  return !(triggering || syncing);
+bool should_trigger() {
+  return (is_playing() && microtime >= (last_clock_time + swing_delay) && (microtime - (last_clock_time + swing_delay)) < trigger_dur);
 }
 
 // The trellis blocks interrupts to set the LEDs, this slows down millis and micros
 // Compensating for this in the refresh_keypad function
 void update_micros() {
-  microtime = micros() + trellis_delay;
-  millitime = microtime / 1000;
+  microtime = micros();
 }
 
 void update_timers() {
   update_micros();
 
-  polling_keys = (millitime - last_key_polltime) >= key_poll_hz;
-  last_key_polltime = polling_keys ? millitime : last_key_polltime;
+  polling_btns = (microtime - last_btn_polltime) >= btn_poll_hz;
+  last_btn_polltime = polling_btns ? microtime : last_btn_polltime;
 
-  polling_btns = (millitime - last_btn_polltime) >= btn_poll_hz;
-  last_btn_polltime = polling_btns ? millitime : last_btn_polltime;
+  perform_save = (microtime - last_save_time) >= save_hz;
+  last_save_time = perform_save ? microtime : last_save_time;
 
-  perform_save = (millitime - last_save_time) >= save_hz;
-  last_save_time = perform_save ? millitime : last_save_time;
-
-  print_debug = (millitime - last_print_time) >= debug_serial_hz;
-  last_print_time = print_debug ? millitime : last_print_time;
+  print_debug = (microtime - last_print_time) >= debug_serial_hz;
+  last_print_time = print_debug ? microtime : last_print_time;
 
   update_spi_dacs = (microtime - last_spi_dac_update) >= spi_dac_hz;
   last_spi_dac_update = update_spi_dacs ? microtime : last_spi_dac_update;
@@ -181,11 +177,12 @@ void update_timers() {
   adc_poll = (microtime - last_int_adc_update) >= int_adc_hz;
   last_int_adc_update = adc_poll ? microtime : last_int_adc_update;
 
-  triggering = microtime >= (last_clock_time + swing_delay) && (microtime - (last_clock_time + swing_delay)) < trigger_dur;
+  triggering = should_trigger();
+  forward_clock = microtime >= last_clock_time && microtime - last_clock_time < trigger_dur;
   syncing = (microtime - last_sync_time) < sync_dur;
 
-  btn_hold_primed = millitime - last_btn_press > btn_hold_wait;
-  keypad_mode_menu = millitime - last_enc_action < temp_menu_dur;
+  btn_hold_primed = microtime - last_btn_press > btn_hold_wait;
+  keypad_mode_menu = microtime - last_enc_action < temp_menu_dur;
   menu_mode_active = btn_mode_down && btn_hold_primed;
   menu_steps_active = btn_steps_down && btn_hold_primed;
   menu_swing_active = btn_swing_down && btn_hold_primed;

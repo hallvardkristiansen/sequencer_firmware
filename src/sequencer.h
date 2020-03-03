@@ -1,3 +1,18 @@
+void pause() {
+  if (hold_for_sync) {
+    holding_for_sync = true;
+  } else {
+    paused = true;
+  }
+}
+
+void fire_sync() {
+  last_sync_time = microtime;
+  if (!loop_pattern) {
+    pause();
+  }
+}
+
 void change_pointers_count(int dir) {
   if (dir > 0) {
     if (pointers == 1) {
@@ -48,14 +63,6 @@ void change_pattern_start(int amnt) {
 bool is_playing() {
   bool playing = hold_for_sync ? !holding_for_sync : !paused;
   return playing;
-}
-
-void pause() {
-  if (hold_for_sync) {
-    holding_for_sync = true;
-  } else {
-    paused = true;
-  }
 }
 
 void reset_pointer() {
@@ -258,10 +265,10 @@ void increment_glide_mode(int amnt) {
 
 void fire_trigger() {
   blinker = !blinker;
-  forward_clock = true;
-  if (!paused && !holding_for_sync) {
+  clock_interval = microtime - last_clock_time;
+  last_clock_time = microtime;
+  if (is_playing()) {
     update_pointer(incrementor);
-    last_clock_time = microtime;
     swing_delay = swinging ? global_swing * swing_dur : 0;
     increment_sequence();
     if (recording_cv) {
@@ -277,13 +284,6 @@ void fire_reset() {
   }
   if (hold_for_sync) {
     holding_for_sync = false;
-  }
-}
-
-void fire_sync() {
-  last_sync_time = microtime;
-  if (!loop_pattern) {
-    pause();
   }
 }
 
