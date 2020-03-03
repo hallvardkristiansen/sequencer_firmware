@@ -20,10 +20,17 @@ void poll_keypad() {
   }
 }
 
+// Add about 30 microseconds per LED each time the trellis.show() function
+// runs in order to correct drift due to it disabling interrupts
+void add_delay() {
+  trellis_delay += trellis_led_delay * grid_size;
+}
+
 void refresh_keypad() {
   if (refresh_trellis && polling_keys) {
     refresh_keypad_colours();
     trellis.pixels.show();
+    add_delay();
     refresh_trellis = false;
   }
 }
@@ -143,9 +150,15 @@ bool allow_ui() {
   return !(triggering || syncing);
 }
 
+// The trellis blocks interrupts to set the LEDs, this slows down millis and micros
+// Compensating for this in the refresh_keypad function
+void update_micros() {
+  microtime = micros() + trellis_delay;
+  millitime = microtime / 1000;
+}
+
 void update_timers() {
-  millitime = millis();
-  microtime = micros();
+  update_micros();
 
   polling_keys = (millitime - last_key_polltime) >= key_poll_hz;
   last_key_polltime = polling_keys ? millitime : last_key_polltime;

@@ -42,6 +42,7 @@ int cv_dur = 0;
 
 long millitime = 0; // millis
 long microtime = 0; // micros
+long trellis_delay = 0; // micros
 long last_key_polltime = 0; // millis
 long last_btn_polltime = 0; // millis
 long last_btn_press = 0; // millis
@@ -60,6 +61,7 @@ const int grid_size = 16;
 const int initial_pattern_length = 32;
 const int max_pattern_length = 2048;
 const int dac_count = 4;
+const int trellis_led_delay = 30; // microsecond delay per LED
 int current_page = 0;
 int pointer = 0;
 int pointers = 1;
