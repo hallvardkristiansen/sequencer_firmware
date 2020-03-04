@@ -83,7 +83,9 @@ void reset_pointer() {
     }
   }
   pattern_ended = false;
-  sync_primed = true;
+  if (is_playing()) {
+    sync_primed = true;
+  }
 }
 
 void update_pointer(int val) {
@@ -97,9 +99,9 @@ void update_pointer(int val) {
 
   pattern_ended = (pointer_over_bounds && page_over_bounds) || (pointer_under_bounds && page_under_bounds);
 
-  if (pattern_ended && is_playing()) {
+  if (pattern_ended) {
     reset_pointer();
-    if (!loop_pattern) {
+    if (!loop_pattern && is_playing()) {
       pause();
     }
   } else {
@@ -206,12 +208,12 @@ void increment_octave(int amnt) {
   }
 }
 void increment_note(int amnt) {
-  if (pattern_tone[last_keypad_down_index] + amnt >= (int)sizeof(semitones)) {
-    pattern_tone[last_keypad_down_index] = (int)sizeof(semitones) -1;
-  } else if (pattern_tone[last_keypad_down_index] + amnt < 0) {
-    pattern_tone[last_keypad_down_index] = 0;
+  if (pattern_tone[target_keypad_index] + amnt >= (int)sizeof(semitones)) {
+    pattern_tone[target_keypad_index] = (int)sizeof(semitones) -1;
+  } else if (pattern_tone[target_keypad_index] + amnt < 0) {
+    pattern_tone[target_keypad_index] = 0;
   } else {
-    pattern_tone[last_keypad_down_index] += amnt;
+    pattern_tone[target_keypad_index] += amnt;
   }
 }
 void increment_key_swing(int amnt) {

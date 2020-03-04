@@ -1,5 +1,5 @@
 bool allow_ui() {
-  bool hyperspeed = clock_interval < 15000;
+  hyperspeed = clock_interval < 15000;
   return !(triggering || syncing || hyperspeed);
 }
 
@@ -157,7 +157,13 @@ void auto_clocking() {
 }
 
 bool should_trigger() {
-  return (is_playing() && microtime >= (last_clock_time + swing_delay) && (microtime - (last_clock_time + swing_delay)) < trigger_dur);
+  bool within_trigger = false;
+  if (!triggered_manually) {
+    within_trigger = microtime >= (last_clock_time + swing_delay) && (microtime - (last_clock_time + swing_delay)) < trigger_dur;
+  } else {
+    within_trigger = microtime >= last_key_press && (microtime - last_key_press) < trigger_dur;
+  }
+  return ((is_playing() || triggered_manually) && within_trigger);
 }
 
 // The trellis blocks interrupts to set the LEDs, this slows down millis and micros

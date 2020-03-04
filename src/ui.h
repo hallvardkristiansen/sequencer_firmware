@@ -160,42 +160,65 @@ void keypad_pressed(int key_num) {
   }
 
   if (menu_semitones_active) {
-    int relative_semitone = (menu_semitones_octave * 12) + key_num;
-    pattern_tone[target_keypad_index] = relative_semitone;
-    if (trigger_mode) {
-      for(int i=0; i<gridy; i++){
-        triggers[i] = true;
+    if (key_num < 12) {
+      int relative_semitone = (menu_semitones_octave * 12) + key_num;
+      pattern_tone[target_keypad_index] = relative_semitone;
+      int key_row = floor((target_keypad_index - (current_page * grid_size)) / gridy);
+      if (!is_playing()) {
+        last_key_press = microtime;
+        triggered_manually = true;
+        trigger_dur = 50000;
+        for (int i = 0; i < pointers; i++) {
+          if (pointers == 1) {
+            if (trigger_mode) {
+              triggers[i] = true;
+            } else {
+              notes[0] = relative_semitone;
+              swing[0] = global_swing;
+              glide[0] = global_glide;
+              triggers[0] = false;
+              triggers[1] = true;
+              notes[2] = relative_semitone;
+              swing[2] = global_swing;
+              glide[2] = global_glide;
+              triggers[2] = false;
+              triggers[3] = true;
+            }
+          }
+          if (pointers == 2) {
+            if (i == 0) {
+              notes[0] = relative_semitone;
+              swing[0] = global_swing;
+              glide[0] = global_glide;
+              triggers[0] = false;
+              triggers[1] = key_row < 2;
+            }
+            if (i == 1) {
+              notes[2] = relative_semitone;
+              swing[2] = global_swing;
+              glide[2] = global_glide;
+              triggers[2] = false;
+              triggers[3] = key_row >= 2;
+            }
+          }
+          if (pointers == 4) {
+            triggers[i] = (key_row == i) && trigger_mode;
+            notes[i] = relative_semitone;
+            swing[i] = global_swing;
+            glide[i] = global_glide;
+          }
+        }
       }
     } else {
-      if (pointers == 1) {
-        notes[0] = notes[2] = relative_semitone;
-        triggers[0] = triggers[2] = false;
-        triggers[1] = triggers[3] = true;
-      } else if (pointers == 2) {
-        triggers[0] = triggers[2] = false;
-        if (target_keypad_index % grid_size < grid_size / 2) {
-          notes[0] = relative_semitone;
-          triggers[1] = true;
-          triggers[3] = false;
-        } else {
-          notes[2] = relative_semitone;
-          triggers[1] = false;
-          triggers[3] = true;
-        }
-      } else if (pointers == 4) {
-        int target_row_num = floor(target_keypad_index % grid_size / gridx);
-        notes[target_row_num] = relative_semitone;
-        for(int i=0; i<gridy; i++){
-          triggers[i] = false;
-        }
-      }
+      menu_semitones_octave = key_num - 11;
     }
-    last_clock_time = microtime;
   }
 }
 void keypad_released(int key_num) {
   keypads_down[key_num] = false;
   keypad_down = false;
+  triggered_manually = false;
+  trigger_dur = 5000;
   int pattern_index = (grid_size * current_page) + key_num;
 
   if (btn_hold_primed && !btn_mode_down && !btn_steps_down && !btn_swing_down && !btn_dur_down) {
@@ -282,6 +305,14 @@ uint32_t Wheel(byte WheelPos) {
    return trellis.pixels.Color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
   return 0;
+}
+
+uint32_t tone_color(int semitone) {
+  double redval = semitone + 5;
+  double greenval = redval - 40 > 0 ? redval - 40 : 0;
+  int blueval = 0;
+  uint32_t returnval = trellis.pixels.Color(redval, greenval, blueval);
+  return returnval;
 }
 
 uint32_t keypad_color(int num) {
@@ -389,7 +420,7 @@ void refresh_keypad_colours() {
       if (i < 12) { // Semitones in top three rows of keypad
         int relative_semitone = (menu_semitones_octave * 12) + i;
         if (pattern_tone[target_keypad_index] == relative_semitone) {
-          trellis.pixels.setPixelColor(i, keypad_color(i));
+          trellis.pixels.setPixelColor(i, tone_color(relative_semitone));
         } else if (i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11) {
           trellis.pixels.setPixelColor(i, major_palette[menu_semitones_octave]);
         } else {
