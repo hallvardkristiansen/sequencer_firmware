@@ -45,15 +45,11 @@ void btn_press(int which) {
             } else {
               paste_page();
             }
-          } else {
-            if (btn_steps_down && !btn_swing_down && !btn_dur_down) {
-              fire_reset();
-            }
           }
         break;
         case 1: // steps
           if (copy_section[1] > 0) {
-            fill_nth_page(2);
+            fill_active_pattern();
           } else {
             if (!menu_steps_active && !btn_mode_down && !btn_swing_down && !btn_dur_down) {
               if (hold_for_sync) {
@@ -63,17 +59,18 @@ void btn_press(int which) {
                 paused = !paused;
               }
             }
-            if (btn_mode_down && !btn_swing_down && !btn_dur_down) {
-              fire_reset();
-            }
           }
           menu_steps_active = false;
         break;
         case 2: // swing
-          if (copy_section[1] > 0) {
-            fill_nth_page(4);
-          } else if (!btn_mode_down && !btn_steps_down && !btn_dur_down) {
-            randomize_page();
+          if (menu_semitones_active) {
+            insert_space(target_keypad_index);
+          } else {
+            if (copy_section[1] > 0) {
+              fill_nth_page(4);
+            } else if (!btn_mode_down && !btn_steps_down && !btn_dur_down) {
+              randomize_page();
+            }
           }
         break;
         case 3: // dur
@@ -168,6 +165,15 @@ void keypad_pressed(int key_num) {
         last_key_press = microtime;
         triggered_manually = true;
         trigger_dur = 50000;
+        if (recording_semitones) {
+          if (target_keypad_index + incrementor > pattern_start + pattern_length) {
+            target_keypad_index = pattern_start;
+          } else if (target_keypad_index + incrementor < pattern_start) {
+            target_keypad_index = pattern_start + pattern_length;
+          } else {
+            target_keypad_index += incrementor;
+          }
+        }
         for (int i = 0; i < pointers; i++) {
           if (pointers == 1) {
             if (trigger_mode) {
@@ -210,7 +216,11 @@ void keypad_pressed(int key_num) {
         }
       }
     } else {
-      menu_semitones_octave = key_num - 11;
+      if (menu_semitones_octave == key_num - 11) {
+        menu_semitones_octave = 0;
+      } else {
+        menu_semitones_octave = key_num - 11;
+      }
     }
   }
 }
@@ -275,6 +285,9 @@ void keypad_released(int key_num) {
         break;
         case 10: // Toggle internal clock
           self_clock = !self_clock;
+        break;
+        case 11: // Toggle semitone recording
+          recording_semitones = !recording_semitones;
         break;
       }
     } else if (menu_steps_active) {
@@ -346,34 +359,37 @@ void refresh_keypad_colours() {
       uint32_t pixelcolor = 0x000001;
       switch (i) {
         case 0:  // Reverse play direction
-          pixelcolor = (playback_mode == 0) ? 0x991111 : 0x690101;
+          pixelcolor = (playback_mode == 0) ? 0x991111 : 0x490101;
         break;
         case 1:  // Bounce play directions
-          pixelcolor = (playback_mode == 1) ? 0x119911 : 0x016901;
+          pixelcolor = (playback_mode == 1) ? 0x119911 : 0x014901;
         break;
         case 2:  // Forward play direction
-          pixelcolor = (playback_mode == 2) ? 0x111199 : 0x010169;
+          pixelcolor = (playback_mode == 2) ? 0x111199 : 0x010149;
         break;
         case 3:  // Toggle triggers only mode
-          pixelcolor = trigger_mode ? 0x555500 : 0x252500;
+          pixelcolor = trigger_mode ? 0x555500 : 0x151500;
         break;
         case 4:  // One play head
-          pixelcolor = (pointers == 1) ? 0x999911 : 0x696901;
+          pixelcolor = (pointers == 1) ? 0x999911 : 0x494901;
         break;
         case 5:  // Two play heads
-          pixelcolor = (pointers == 2) ? 0x991199 : 0x690169;
+          pixelcolor = (pointers == 2) ? 0x991199 : 0x490149;
         break;
         case 6:  // Four play heads
-          pixelcolor = (pointers == 4) ? 0x119999 : 0x016969;
+          pixelcolor = (pointers == 4) ? 0x119999 : 0x014949;
         break;
         case 8: // Toggle wait for sync mode
-          pixelcolor = hold_for_sync ? 0x339933 : 0x135913;
+          pixelcolor = hold_for_sync ? 0x339933 : 0x033903;
         break;
         case 9: // Toggle loop pattern
-          pixelcolor = loop_pattern ? 0x225566 : 0x021526;
+          pixelcolor = loop_pattern ? 0x225566 : 0x020816;
         break;
         case 10: // Toggle auto clocking
-          pixelcolor = self_clock ? 0x123566 : 0x020546;
+          pixelcolor = self_clock ? 0x123566 : 0x020536;
+        break;
+        case 11: // Toggle semitone recording
+          pixelcolor = recording_semitones ? 0xAA0000 : 0x550000;
         break;
       }
       trellis.pixels.setPixelColor(i, pixelcolor);

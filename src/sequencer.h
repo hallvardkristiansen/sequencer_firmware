@@ -11,6 +11,22 @@ void fire_sync() {
   sync_primed = false;
 }
 
+int get_page_start_index() {
+  return current_page * grid_size;
+}
+int get_current_pointer_index() {
+  return get_page_start_index() + pointer;
+}
+int get_pattern_start_page() {
+  return pattern_start / grid_size;
+}
+int get_pattern_end_page() {
+  return ((pattern_start + pattern_length) / grid_size) - 1;
+}
+int get_step_length() {
+  return grid_size / pointers;
+}
+
 void change_pointers_count(int dir) {
   if (dir > 0) {
     if (pointers == 1) {
@@ -55,7 +71,7 @@ void change_pattern_start(int amnt) {
       pattern_start -= deduct;
     }
   }
-  current_page = pattern_start / grid_size;
+  current_page = get_pattern_start_page();
 }
 
 bool is_playing() {
@@ -68,18 +84,18 @@ void reset_pointer() {
     incrementor = -incrementor;
     if (incrementor > 0) {
       pointer = 1;
-      current_page = pattern_start / grid_size;
+      current_page = get_pattern_start_page();
     } else {
-      pointer = (grid_size / pointers) - 2;
-      current_page = ((pattern_start + pattern_length) / grid_size) - 1;
+      pointer = get_step_length() - 2;
+      current_page = get_pattern_end_page();
     }
   } else {
     if (incrementor > 0) {
       pointer = 0;
-      current_page = pattern_start / grid_size;
+      current_page = get_pattern_start_page();
     } else {
-      pointer = (grid_size / pointers) - 1;
-      current_page = ((pattern_start + pattern_length) / grid_size) - 1;
+      pointer = get_step_length() - 1;
+      current_page = get_pattern_end_page();
     }
   }
   pattern_ended = false;
@@ -89,7 +105,7 @@ void reset_pointer() {
 }
 
 void update_pointer(int val) {
-  int max_steps = grid_size / pointers;
+  int max_steps = get_step_length();
   int pointer_min = 0;
   int pointer_max = max_steps - 1;
   bool pointer_over_bounds = pointer + val > pointer_max;
@@ -123,7 +139,7 @@ void update_pointer(int val) {
 
 bool is_pointer(int val) {
   bool returnval = false;
-  int steplength = (gridx * gridy) / pointers;
+  int steplength = get_step_length();
   for (int i = 0; i < pointers; i++) {
     if (val == pointer + (steplength * i)) {
       returnval = true;
@@ -133,8 +149,8 @@ bool is_pointer(int val) {
 }
 
 void increment_sequence() {
-  int steplength = grid_size / pointers;
-  pattern_pointer = (current_page * grid_size) + pointer;
+  int steplength = get_step_length();
+  pattern_pointer = get_current_pointer_index();
   swinging = pointer % 2 == 0;
   for (int i = 0; i < dac_count; i++) {
     last_notes[i] = notes[i];
@@ -304,12 +320,12 @@ void change_page(int dir) {
 }
 
 void copy_page() {
-  copy_section[0] = current_page * grid_size;
+  copy_section[0] = get_page_start_index();
   copy_section[1] = grid_size;
 }
 
 void paste_page() {
-  int starting_step = current_page * grid_size;
+  int starting_step = get_page_start_index();
   for (int i = 0; i < copy_section[1]; i++) {
     int paste_step = starting_step + i;
     int copy_step = copy_section[0] + i;
@@ -319,6 +335,21 @@ void paste_page() {
     pattern_on[paste_step] = pattern_on[copy_step];
   }
   copy_section[1] = 0;
+}
+
+void insert_space(int where) {
+  for (int i = pattern_length; i > where; i--) {
+    int paste_step = i;
+    int copy_step = i - 1;
+    pattern_tone[paste_step] = pattern_tone[copy_step];
+    pattern_swing[paste_step] = pattern_swing[copy_step];
+    pattern_glide[paste_step] = pattern_glide[copy_step];
+    pattern_on[paste_step] = pattern_on[copy_step];
+  }
+  pattern_tone[where] = 0;
+  pattern_swing[where] = 0;
+  pattern_glide[where] = 0;
+  pattern_on[where] = false;
 }
 
 void fill_active_pattern() {
@@ -354,7 +385,7 @@ void fill_nth_page(int page_num) {
 }
 
 void clear_page() {
-  int starting_step = current_page * grid_size;
+  int starting_step = get_page_start_index();
   for (int i = 0; i < grid_size; i++) {
     int clear_step = starting_step + i;
     pattern_tone[clear_step] = 0;
@@ -365,7 +396,7 @@ void clear_page() {
 }
 
 void randomize_page() {
-  int starting_step = current_page * grid_size;
+  int starting_step = get_page_start_index();
   for (int i = 0; i < grid_size; i++) {
     int this_step = starting_step + i;
     int random_integer = 0 + rand() % 60;

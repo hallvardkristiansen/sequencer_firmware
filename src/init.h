@@ -50,6 +50,7 @@ bool adc_poll = false;
 bool sample_cv = false;
 bool recording_cv = false;
 bool self_clock = false;
+bool recording_semitones = false;
 int cv_mode = 0;
 int cv_steps = 0;
 int cv_swing = 0;
