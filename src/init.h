@@ -15,8 +15,8 @@ const uint32_t minor_palette[5] = {0x150000, 0x050005, 0x000015, 0x000505, 0x001
 const unsigned int spi_dac_hz = 50; // micros
 const unsigned int int_dac_hz = 150;
 const unsigned int int_adc_hz = 1500;
-unsigned int trigger_dur = 5000;
-const unsigned int sync_dur = 5000;
+unsigned int trigger_dur = 15000;
+const unsigned int sync_dur = 15000;
 const unsigned int swing_dur = 1000;
 const unsigned int glide_dur = 5000;
 

@@ -338,7 +338,7 @@ void paste_page() {
 }
 
 void insert_space(int where) {
-  for (int i = pattern_length; i > where; i--) {
+  for (int i = pattern_start + pattern_length; i > where; i--) {
     int paste_step = i;
     int copy_step = i - 1;
     pattern_tone[paste_step] = pattern_tone[copy_step];

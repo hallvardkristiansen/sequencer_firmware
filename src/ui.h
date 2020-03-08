@@ -69,7 +69,7 @@ void btn_press(int which) {
             if (copy_section[1] > 0) {
               fill_nth_page(4);
             } else if (!btn_mode_down && !btn_steps_down && !btn_dur_down) {
-              randomize_page();
+              insert_space(get_current_pointer_index());
             }
           }
         break;
@@ -160,6 +160,7 @@ void keypad_pressed(int key_num) {
     if (key_num < 12) {
       int relative_semitone = (menu_semitones_octave * 12) + key_num;
       pattern_tone[target_keypad_index] = relative_semitone;
+      pattern_on[target_keypad_index] = true;
       int key_row = floor((target_keypad_index - (current_page * grid_size)) / gridy);
       if (!is_playing()) {
         last_key_press = microtime;
@@ -228,8 +229,8 @@ void keypad_released(int key_num) {
   keypads_down[key_num] = false;
   keypad_down = false;
   triggered_manually = false;
-  trigger_dur = 5000;
-  int pattern_index = (grid_size * current_page) + key_num;
+  trigger_dur = 15000;
+  int pattern_index = get_page_start_index() + key_num;
 
   if (btn_hold_primed && !btn_mode_down && !btn_steps_down && !btn_swing_down && !btn_dur_down) {
     if (!menu_semitones_active) {
@@ -452,7 +453,7 @@ void refresh_keypad_colours() {
     }
   } else {
     for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
-      int pattern_index = (current_page * grid_size) + i;
+      int pattern_index = get_page_start_index() + i;
       uint32_t active_color = is_pointer(i) ? 0xAAAAAA : keypad_color(i);
       uint32_t recording_color = 0xff0000;
       uint32_t inactive_color = (i >= (pattern_start / grid_size)) && (i < ((pattern_start + pattern_length) / grid_size)) ? 0x000001 : 0x000000;
